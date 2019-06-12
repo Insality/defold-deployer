@@ -7,6 +7,7 @@ Unique build && deploy script for mobile projects (Android, iOS) for Defold Engi
 - Custom settings on project (provisions, bob version, etc)
 - Save your time on preparing debug & release builds
 - Nice naming builds to save history of product versions
+- Auto *bob.jar* downloading. Flag **use_latest_bob** for using always last version of defold
 
 ## Install:
 For bob build tool you need to install java 1.8
