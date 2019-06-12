@@ -9,9 +9,20 @@ Unique build && deploy script for mobile projects (Android, iOS) for Defold Engi
 - Nice naming builds to save history of product versions
 
 ## Install:
+For bob build tool you need to install java 1.8
+
+For ios deploy by cable you need to install:
 *ios-deloy*: https://github.com/ios-control/ios-deploy
+
+For android deploy and read logs you need to install:
 *adb*: https://developer.android.com/studio/releases/platform-tools
-*java*: https://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html
+
+
+## Setup
+I recommend place `deployer.sh` in your path with name `deployer`, chmod +x it and call it in your project folder like:
+`deployer abd`
+
+Override global settings for your projects inside `deployer` scripts. See **custom parameters** section to more info 
 
 ## Usage:
 `bash deployer.sh [a][i][r][b][d]`
@@ -24,7 +35,8 @@ Unique build && deploy script for mobile projects (Android, iOS) for Defold Engi
 - it will only deploy bundle on iOS (for now)
 
 Bundle files will be located at *./dist/bundle*
-With name {ProjectName}_{Version}_{BuildMode}.[apk|ipa]
+If no version finded in `game.project`, it will be *0.0.0* as default
+With name {ProjectName}\_{Version}\_{BuildMode}.[apk|ipa]
 
 ##	Example:
 `./deployer.sh abd` - build, deploy and run Android bundle
@@ -35,15 +47,27 @@ You can pass params in any order you want, for example:
 `./deployer.sh riba` - same behaviour as aibr
 
 ## Custom parameters:
-You can setup custom parameters (like provisions, keys and certificate, bob version)
-Deployer params can be overrided with ./custom_deployer script
+You can override global params for every project in `./custom_deployer` bash file on root of your project:
 If this file exist, it will run inside this script
-
-Just declare new global vars inside custom_deployer like this:
 ```bash
-ios_prov_dev=./provisions/dev.mobileprovision
-ios_identity_dev="AAABBCUSTOM"
-bob_sha="155:838cecd7a26c932e6be73421d98e51ba12f1d462"
+# path to bob folder. It will find and save new bob files inside
+bob_folder={path}/bob.jar
+# path to android signature key
+android_key={path}/key.pk8
+# path to android signature certificate
+android_cer={path}/certificate.pem
+# ID of your ios development identity
+ios_identity_dev="AAXBBYY"
+# ID of your iod distribution identity
+ios_identity_dist="YYBBXXAA"
+# path to ios development mobileprovision
+ios_prov_dev={path}/ios_dev.mobileprovision
+# path to ios distribution mobileprovision
+ios_prov_dist={path}/ios_dist.mobileprovision
+# You can point bob version for project in format "{version:sha}"
+bob_sha="156:67b68f1e1ac26a3385fb511cdce520fe52387bb0"
+# If true, it will check and download latest bob versionn and it will ignore bob_sha
+use_latest_bob=false
 ```
 
 ## Author
