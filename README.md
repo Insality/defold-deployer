@@ -1,7 +1,7 @@
 # Defold Deployer
 Unique build && deploy script for mobile projects (Android, iOS) for Defold Engine
 
-## Features:
+## Features
 - Single deployment script on all Defold mobile projects
 - One command to build, deploy and read logs from the mobile
 - Custom settings on project (provisions, bob version, etc)
@@ -9,7 +9,7 @@ Unique build && deploy script for mobile projects (Android, iOS) for Defold Engi
 - Nice naming builds to save history of product versions
 - Auto *bob.jar* downloading. Flag **use_latest_bob** for using always last version of defold
 
-## Install:
+## Install
 For bob build tool you need to install java 1.8
 
 For ios deploy by cable you need to install:
@@ -25,21 +25,21 @@ I recommend place `deployer.sh` in your path with name `deployer`, chmod +x it a
 
 Override global settings for your projects inside `deployer` scripts. See **custom parameters** section to more info 
 
-## Usage:
+## Usage
 `bash deployer.sh [a][i][r][b][d]`
-`a` - add target platform Android
-`i` - add target platform iOS
-`r` - set build mode to Release
-`b` - build project (game bundle will be in ./dist folder)
-`d` - deploy bundle to connected device
-- it will deploy && run bundle on Android
-- it will only deploy bundle on iOS (for now)
+- `a` - add target platform Android
+- `i` - add target platform iOS
+- `r` - set build mode to Release
+- `b` - build project (game bundle will be in ./dist folder)
+- `d` - deploy bundle to connected device
+	- it will deploy && run bundle on Android
+	- it will only deploy bundle on iOS (for now)
 
 Bundle files will be located at *./dist/bundle*
 If no version finded in `game.project`, it will be *0.0.0* as default
 With name {ProjectName}\_{Version}\_{BuildMode}.[apk|ipa]
 
-##	Example:
+##	Example
 `./deployer.sh abd` - build, deploy and run Android bundle
 `./deployer.sh ird` - build and deploy iOS release bundle
 `./deployer.sh aibr` - build Android and iOS release bundles
@@ -47,7 +47,7 @@ With name {ProjectName}\_{Version}\_{BuildMode}.[apk|ipa]
 You can pass params in any order you want, for example:
 `./deployer.sh riba` - same behaviour as aibr
 
-## Custom parameters:
+## Custom parameters
 You can override global params for every project in `./custom_deployer` bash file on root of your project:
 If this file exist, it will run inside this script
 ```bash
