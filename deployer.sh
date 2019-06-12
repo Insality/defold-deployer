@@ -45,7 +45,7 @@
 
 ## Setup provisions and certificates for your project
 ## Global settings. Override it in ./custom_deployer
-bob_folder={path}/bob.jar
+bob_folder={path}/
 android_key={path}/key.pk8
 android_cer={path}/certificate.pem
 ios_identity_dev="AAXBBYY"

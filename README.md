@@ -52,7 +52,7 @@ You can override global params for every project in `./custom_deployer` bash fil
 If this file exist, it will run inside this script
 ```bash
 # path to bob folder. It will find and save new bob files inside
-bob_folder={path}/bob.jar
+bob_folder={path}/
 # path to android signature key
 android_key={path}/key.pk8
 # path to android signature certificate
