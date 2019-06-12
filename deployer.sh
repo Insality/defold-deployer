@@ -45,15 +45,26 @@
 
 ## Setup provisions and certificates for your project
 ## Global settings. Override it in ./custom_deployer
+
+# path to bob folder. It will find and save new bob files inside
 bob_folder={path}/
+# path to android signature key
 android_key={path}/key.pk8
+# path to android signature certificate
 android_cer={path}/certificate.pem
+# ID of your ios development identity
 ios_identity_dev="AAXBBYY"
+# ID of your iod distribution identity
 ios_identity_dist="YYBBXXAA"
+# path to ios development mobileprovision
 ios_prov_dev={path}/ios_dev.mobileprovision
+# path to ios distribution mobileprovision
 ios_prov_dist={path}/ios_dist.mobileprovision
-bob_sha="156:67b68f1e1ac26a3385fb511cdce520fe52387bb0" # You can point bob version for project
-use_latest_bob=false # If true, it will check and download latest bob version. Ignore bob_sha
+# You can point bob version for project in format "{version:sha}"
+bob_sha="156:67b68f1e1ac26a3385fb511cdce520fe52387bb0"
+# If true, it will check and download latest bob versionn and it will ignore bob_sha
+use_latest_bob=false
+
 
 # Exit on Cmd+C / Ctrl+C
 trap "exit" INT
