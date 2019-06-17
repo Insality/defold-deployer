@@ -167,7 +167,8 @@ build() {
 	if [ ${platform} == ${ios_platform} ]; then
 		echo "Start build ios ${mode}"
 		bob ${mode} -brhtml ./dist/${platform}_report.html \
-			--platform ${platform} --identity ${ident} -mp ${prov}
+			--platform ${platform} --identity ${ident} -mp ${prov} \
+			--variant ${mode}
 
 		line="./dist/${title}.ipa"
 		filename="${file_prefix_name}_${mode}.ipa"
