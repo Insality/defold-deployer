@@ -14,7 +14,7 @@
 ## With name {ProjectName}_{Version}_{BuildMode}.[apk|ipa]
 ##
 ## Usage:
-## bash deployer.sh [a][i][r][b][d]
+## bash deployer.sh [a][i][r][b][d] [--instant]
 ## 	a - add target platform Android
 ## 	i - add target platform iOS
 ## 	r - set build mode to Release
@@ -33,10 +33,10 @@
 ##
 ## Custom parameters:
 ## You can setup custom parameters (like provisions, keys and certificate, bob version)
-## Deployer params can be overrided with ./custom_deployer script
+## Deployer params can be overrided with ./deployer_settings script
 ## If this file exist, it will run inside this script
 ##
-## Just declare new global vars inside custom_deployer like this:
+## Just declare new global vars inside deployer_settings like this:
 ##
 ## 	ios_prov_dev=./provisions/dev.mobileprovision
 ## 	ios_identity_dev="AAABBCUSTOM"
@@ -44,31 +44,22 @@
 ##
 
 ## Setup provisions and certificates for your project
-## Global settings. Override it in ./custom_deployer
-
-# path to bob folder. It will find and save new bob files inside
-bob_folder={path}/
-# path to android signature key
-android_key={path}/key.pk8
-# path to android signature certificate
-android_cer={path}/certificate.pem
-# ID of your ios development identity
-ios_identity_dev="AAXBBYY"
-# ID of your iod distribution identity
-ios_identity_dist="YYBBXXAA"
-# path to ios development mobileprovision
-ios_prov_dev={path}/ios_dev.mobileprovision
-# path to ios distribution mobileprovision
-ios_prov_dist={path}/ios_dist.mobileprovision
-# You can point bob version for project in format "{version:sha}"
-bob_sha="156:67b68f1e1ac26a3385fb511cdce520fe52387bb0"
-# If true, it will check and download latest bob versionn and it will ignore bob_sha
-use_latest_bob=false
+## Global settings. Override it in ./deployer_settings
 
 
 # Exit on Cmd+C / Ctrl+C
 trap "exit" INT
 
+script_path="`dirname \"$0\"`"
+is_settings_exist=false
+
+if [ ! -f ./game.project ]; then
+	echo -e "\x1B[31m[ERROR]: ./game.project not exist\x1B[0m"
+	exit
+fi
+
+
+# Game project settings for deployer
 title=$(less game.project | grep "^title = " | cut -d "=" -f2 | sed -e 's/^[[:space:]]*//')
 version=$(less game.project | grep "^version = " | cut -d "=" -f2 | sed -e 's/^[[:space:]]*//')
 version=${version:='0.0.0'}
@@ -78,24 +69,45 @@ file_prefix_name="${title_no_space}_${version}"
 android_platform="armv7-android"
 ios_platform="armv7-darwin"
 
-if [ -f ./custom_deployer ]; then
-	echo "Use custom deployer settings for ${title}"
-	source custom_deployer
+echo ""
+echo "Project: ${title} v${version}"
+
+
+if [ -f ${script_path}/deployer_settings ]; then
+	is_settings_exist=true
+	echo "Using default deployer settings from ${script_path}/deployer_settings"
+	source ${script_path}/deployer_settings
+fi
+
+if [ -f ./deployer_settings ]; then
+	is_settings_exist=true
+	echo "Using custom deployer settings for ${title} from ${PWD}/deployer_settings"
+	source ./deployer_settings
+fi
+
+if ! $is_settings_exist ; then
+	echo -e "\x1B[31m[ERROR]: No deployer settings file founded\x1B[0m"
+	echo "Place your default deployer settings at ${script_path}/"
+	echo "Place your project settings at root of your game project (./)"
+	echo "File name should be 'deployer_settings'"
+	echo "See template of settings here: https://github.com/Insality/defold-deployer"
+	exit
 fi
 
 bob_version="$(cut -d ":" -f1 <<< "$bob_sha")"
 bob_sha="$(cut -d ":" -f2 <<< "$bob_sha")"
 
-echo "Project: ${title} v${version}"
-echo "Using bob version ${bob_version}"
-
 if $use_latest_bob; then
 	INFO=$(curl -s http://d.defold.com/stable/info.json)
 	echo "Latest bob: ${INFO}"
 	bob_sha=$(sed 's/.*sha1": "\(.*\)".*/\1/' <<< $INFO)
+	echo ${bob_sha}
 	bob_version=$(sed 's/[^0-9.]*\([0-9.]*\).*/\1/' <<< $INFO)
 	bob_version="$(cut -d "." -f3 <<< "$bob_version")"
+	echo ${bob_versio}
 fi
+
+echo "Using bob version ${bob_version} SHA: ${bob_sha}"
 
 bob_path="${bob_folder}bob${bob_version}.jar"
 if [ ! -f ${bob_path} ]; then
@@ -106,25 +118,39 @@ if [ ! -f ${bob_path} ]; then
 	curl -o ${bob_path} ${BOB_URL}
 fi
 
-resolve_bob() {
+try_fix_libraries() {
+	echo "Possibly, libs was corrupter (interupt script while resolving libraries)"
+	echo "Trying to delete and redownload it (./.internal/lib/)"
+	rm -r ./.internal/lib/
 	java -jar ${bob_path} --email foo@bar.com --auth 12345 resolve
 }
 
+resolve_bob() {
+	echo "Resolving libraries..."
+	java -jar ${bob_path} --email foo@bar.com --auth 12345 resolve || try_fix_libraries
+}
+
 bob() {
+	echo "Building project..."
 	mode=$1
 	java -jar ${bob_path} --version
 
+	args="-jar ${bob_path} --archive -bo ./dist --strip-executable --variant $@"
+
 	if [ ${mode} == "debug" ]; then
 		echo "Build without distclean and compression for faster build time"
-		java -jar ${bob_path} --archive -bo ./dist \
-			--strip-executable $@ build bundle
+		echo ""
+		args+=" build bundle"
 	fi
 
 	if [ ${mode} == "release" ]; then
 		echo "Build with distclean and compression. Release mode"
-		java -jar ${bob_path} --archive -tc true -bo ./dist \
-			--strip-executable $@ distclean build bundle
+		echo ""
+		args+=" -tc true build bundle distclean"
 	fi
+
+	echo "Build command: java ${args}"
+	java ${args}
 }
 
 build() {
@@ -136,6 +162,7 @@ build() {
 	fi
 	platform=$1
 	mode=$2
+	additional_params=$3
 	ident=${ios_identity_dev}
 	prov=${ios_prov_dev}
 	if [ ${mode} == "release" ]; then
@@ -154,26 +181,38 @@ build() {
 		# for both architectures 32 and 64
 		echo "Start build android ${mode}"
 		bob ${mode} -brhtml ./dist/${platform}_report.html \
-			--platform ${platform} -pk ${android_key} -ce ${android_cer} \
-			--variant ${mode}
+			--platform ${platform} -pk ${android_key} -ce ${android_cer} ${additional_params}
 
 		line="./dist/${title}/${title}.apk"
 		filename="${file_prefix_name}_${mode}.apk"
 		mv "${line}" "./dist/bundle/${filename}"
-		echo "Save APK bundle at ./dist/bundle/${filename}"
+		echo -e "\x1B[32mSave APK bundle at ./dist/bundle/${filename}\x1B[0m"
 	fi
 
 	# iOS platform
 	if [ ${platform} == ${ios_platform} ]; then
 		echo "Start build ios ${mode}"
 		bob ${mode} -brhtml ./dist/${platform}_report.html \
-			--platform ${platform} --identity ${ident} -mp ${prov}
+			--platform ${platform} --identity ${ident} -mp ${prov} ${additional_params}
 
 		line="./dist/${title}.ipa"
 		filename="${file_prefix_name}_${mode}.ipa"
 		mv "${line}" "./dist/bundle/${filename}"
-		echo "Save IPA bundle at ./dist/bundle/${filename}"
+		echo -e "\x1B[32mSave IPA bundle at ./dist/bundle/${filename}\x1B[0m"
 	fi
+}
+
+make_instant() {
+	mode=$1
+	echo ""
+	echo "Preparing APK for Android Instant game"
+	filename="./dist/bundle/${file_prefix_name}_${mode}.apk"
+	filename_insant="./dist/bundle/${file_prefix_name}_${mode}_insant.apk"
+	filename_insant_zip="./dist/bundle/${file_prefix_name}_${mode}_insant.apk.zip"
+	${sdk_path}/zipalign -f 4 ${filename} ${filename_insant}
+	${sdk_path}/apksigner sign --key ${android_key} --cert ${android_cer} ${filename_insant}
+	zip ${filename_insant_zip} ${filename_insant}
+	echo -e "\x1B[32mZip file for Android instant ready: ${filename_insant_zip}\x1B[0m"
 }
 
 deploy() {
@@ -187,7 +226,7 @@ deploy() {
 
 	if [ ${platform} == ${ios_platform} ]; then
 		filename="./dist/bundle/${file_prefix_name}_${mode}.ipa"
-		echo "Deploy to Ios from ${filename}"
+		echo "Deploy to iOS from ${filename}"
 		ios-deploy --bundle "${filename}"
 	fi
 }
@@ -209,6 +248,7 @@ is_build=false
 is_deploy=false
 is_android=false
 is_ios=false
+is_android_instant=false
 mode="debug"
 
 for (( i=0; i<${#arg}; i++ )); do
@@ -230,6 +270,23 @@ for (( i=0; i<${#arg}; i++ )); do
 	fi
 done
 
+shift
+while [[ $# -gt 0 ]]
+do
+	key=$1
+
+	case $key in
+		--instant)
+			is_android_instant=true
+			mode="release"
+			shift
+		;;
+		*) # Unknown option
+			shift
+		;;
+	esac
+done
+
 
 if $is_ios
 then
@@ -248,17 +305,30 @@ fi
 
 if $is_android
 then
-	if $is_build; then
-		echo ""
-		echo -e "Start build on \x1B[34m${android_platform}\x1B[0m"
-		build ${android_platform} ${mode}
-	fi
+	if ! $is_android_instant; then
+		# Just build usual Android build
+		if $is_build ; then
+			echo ""
+			echo -e "Start build on \x1B[34m${android_platform}\x1B[0m"
+			build ${android_platform} ${mode}
+		fi
 
-	if $is_deploy; then
-		echo "Start deploy project to device"
-		deploy ${android_platform} ${mode}
-		run ${android_platform}
+		if $is_deploy; then
+			echo "Start deploy project to device"
+			deploy ${android_platform} ${mode}
+			run ${android_platform}
+		fi
+	else
+		# Build Android Instant APK
+		echo ""
+		echo -e "Start build on \x1B[34m${android_platform} Instant APK\x1B[0m"
+		build ${android_platform} ${mode} "--settings=${android_instant_app_settings}"
+		make_instant ${mode}
+
+		if $is_deploy; then
+			echo "No autodeploy for Insant APK builds..."
+		fi
 	fi
 fi
 
-echo "End of builder"
+echo "End of deployer build"
