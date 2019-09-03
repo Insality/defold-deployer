@@ -50,16 +50,13 @@
 # Exit on Cmd+C / Ctrl+C
 trap "exit" INT
 
-script_path="`dirname \"$0\"`"
-is_settings_exist=false
-
 if [ ! -f ./game.project ]; then
 	echo -e "\x1B[31m[ERROR]: ./game.project not exist\x1B[0m"
 	exit
 fi
 
 
-# Game project settings for deployer
+# Game project settings for deployer script
 title=$(less game.project | grep "^title = " | cut -d "=" -f2 | sed -e 's/^[[:space:]]*//')
 version=$(less game.project | grep "^version = " | cut -d "=" -f2 | sed -e 's/^[[:space:]]*//')
 version=${version:='0.0.0'}
@@ -69,9 +66,13 @@ file_prefix_name="${title_no_space}_${version}"
 android_platform="armv7-android"
 ios_platform="armv7-darwin"
 
-echo ""
-echo "Project: ${title} v${version}"
 
+echo -e "\nProject: \x1B[36m${title} v${version}\x1B[0m"
+
+
+### SETTINGS LOADING
+script_path="`dirname \"$0\"`"
+is_settings_exist=false
 
 if [ -f ${script_path}/deployer_settings ]; then
 	is_settings_exist=true
@@ -94,6 +95,8 @@ if ! $is_settings_exist ; then
 	exit
 fi
 
+
+### BOB SELECT
 bob_version="$(cut -d ":" -f1 <<< "$bob_sha")"
 bob_sha="$(cut -d ":" -f2 <<< "$bob_sha")"
 
@@ -107,7 +110,7 @@ if $use_latest_bob; then
 	echo ${bob_versio}
 fi
 
-echo "Using bob version ${bob_version} SHA: ${bob_sha}"
+echo -e "Using bob version \x1B[35m${bob_version}\x1B[0m SHA: ${bob_sha}"
 
 bob_path="${bob_folder}bob${bob_version}.jar"
 if [ ! -f ${bob_path} ]; then
@@ -118,6 +121,7 @@ if [ ! -f ${bob_path} ]; then
 	curl -o ${bob_path} ${BOB_URL}
 fi
 
+
 try_fix_libraries() {
 	echo "Possibly, libs was corrupter (interupt script while resolving libraries)"
 	echo "Trying to delete and redownload it (./.internal/lib/)"
@@ -125,10 +129,12 @@ try_fix_libraries() {
 	java -jar ${bob_path} --email foo@bar.com --auth 12345 resolve
 }
 
+
 resolve_bob() {
 	echo "Resolving libraries..."
 	java -jar ${bob_path} --email foo@bar.com --auth 12345 resolve || try_fix_libraries
 }
+
 
 bob() {
 	echo "Building project..."
@@ -139,19 +145,18 @@ bob() {
 
 	if [ ${mode} == "debug" ]; then
 		echo "Build without distclean and compression for faster build time"
-		echo ""
 		args+=" build bundle"
 	fi
 
 	if [ ${mode} == "release" ]; then
 		echo "Build with distclean and compression. Release mode"
-		echo ""
 		args+=" -tc true build bundle distclean"
 	fi
 
-	echo "Build command: java ${args}"
+	echo -e "\nBuild command: java ${args}"
 	java ${args}
 }
+
 
 build() {
 	if [ ! -d ./dist ]; then
@@ -202,10 +207,10 @@ build() {
 	fi
 }
 
+
 make_instant() {
 	mode=$1
-	echo ""
-	echo "Preparing APK for Android Instant game"
+	echo -e "\nPreparing APK for Android Instant game"
 	filename="./dist/bundle/${file_prefix_name}_${mode}.apk"
 	filename_insant="./dist/bundle/${file_prefix_name}_${mode}_insant.apk"
 	filename_insant_zip="./dist/bundle/${file_prefix_name}_${mode}_insant.apk.zip"
@@ -214,6 +219,7 @@ make_instant() {
 	zip ${filename_insant_zip} ${filename_insant}
 	echo -e "\x1B[32mZip file for Android instant ready: ${filename_insant_zip}\x1B[0m"
 }
+
 
 deploy() {
 	platform=$1
@@ -231,6 +237,7 @@ deploy() {
 	fi
 }
 
+
 run() {
 	platform=$1
 	if [ ${platform} == ${android_platform} ]; then
@@ -243,6 +250,8 @@ run() {
 	fi
 }
 
+
+### ARGS PARSING
 arg=$1
 is_build=false
 is_deploy=false
@@ -288,11 +297,11 @@ do
 done
 
 
+### DEPLOYER RUN
 if $is_ios
 then
 	if $is_build; then
-		echo ""
-		echo -e "Start build on \x1B[36m${ios_platform}\x1B[0m"
+		echo -e "\nStart build on \x1B[36m${ios_platform}\x1B[0m"
 		build ${ios_platform} ${mode}
 	fi
 
@@ -308,9 +317,8 @@ then
 	if ! $is_android_instant; then
 		# Just build usual Android build
 		if $is_build ; then
-			echo ""
-			echo -e "Start build on \x1B[34m${android_platform}\x1B[0m"
-			build ${android_platform} ${mode}
+			echo -e "\nStart build on \x1B[34m${android_platform}\x1B[0m"
+			# build ${android_platform} ${mode}
 		fi
 
 		if $is_deploy; then
@@ -320,8 +328,7 @@ then
 		fi
 	else
 		# Build Android Instant APK
-		echo ""
-		echo -e "Start build on \x1B[34m${android_platform} Instant APK\x1B[0m"
+		echo -e "\nStart build on \x1B[34m${android_platform} Instant APK\x1B[0m"
 		build ${android_platform} ${mode} "--settings=${android_instant_app_settings}"
 		make_instant ${mode}
 
