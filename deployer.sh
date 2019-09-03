@@ -122,7 +122,11 @@ bob() {
 	mode=$1
 	java -jar ${bob_path} --version
 
-	args="-jar ${bob_path} --archive -bo ./dist --strip-executable --variant $@"
+	args="-jar ${bob_path} --archive -bo ./dist --variant $@"
+
+	if ! $no_strip_executable; then
+		args+=" --strip-executable"
+	fi
 
 	if [ ${mode} == "debug" ]; then
 		echo "Build without distclean and compression for faster build time"
@@ -193,12 +197,12 @@ make_instant() {
 	mode=$1
 	echo -e "\nPreparing APK for Android Instant game"
 	filename="./dist/bundle/${file_prefix_name}_${mode}.apk"
-	filename_insant="./dist/bundle/${file_prefix_name}_${mode}_insant.apk"
-	filename_insant_zip="./dist/bundle/${file_prefix_name}_${mode}_insant.apk.zip"
-	${sdk_path}/zipalign -f 4 ${filename} ${filename_insant}
-	${sdk_path}/apksigner sign --key ${android_key} --cert ${android_cer} ${filename_insant}
-	zip ${filename_insant_zip} ${filename_insant}
-	echo -e "\x1B[32mZip file for Android instant ready: ${filename_insant_zip}\x1B[0m"
+	filename_instant="./dist/bundle/${file_prefix_name}_${mode}_instant.apk"
+	filename_instant_zip="./dist/bundle/${file_prefix_name}_${mode}_instant.apk.zip"
+	${sdk_path}/zipalign -f 4 ${filename} ${filename_instant}
+	${sdk_path}/apksigner sign --key ${android_key} --cert ${android_cer} ${filename_instant}
+	zip ${filename_instant_zip} ${filename_instant}
+	echo -e "\x1B[32mZip file for Android instant ready: ${filename_instant_zip}\x1B[0m"
 }
 
 
@@ -314,7 +318,7 @@ then
 		make_instant ${mode}
 
 		if $is_deploy; then
-			echo "No autodeploy for Insant APK builds..."
+			echo "No autodeploy for Instant APK builds..."
 		fi
 	fi
 fi
