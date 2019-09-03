@@ -197,11 +197,13 @@ make_instant() {
 	mode=$1
 	echo -e "\nPreparing APK for Android Instant game"
 	filename="./dist/bundle/${file_prefix_name}_${mode}.apk"
-	filename_instant="./dist/bundle/${file_prefix_name}_${mode}_instant.apk"
-	filename_instant_zip="./dist/bundle/${file_prefix_name}_${mode}_instant.apk.zip"
+	filename_instant="./dist/bundle/${file_prefix_name}_${mode}_align.apk"
+	filename_instant_zip="./dist/bundle/${file_prefix_name}_${mode}.apk.zip"
 	${sdk_path}/zipalign -f 4 ${filename} ${filename_instant}
 	${sdk_path}/apksigner sign --key ${android_key} --cert ${android_cer} ${filename_instant}
-	zip ${filename_instant_zip} ${filename_instant}
+	zip -j ${filename_instant_zip} ${filename_instant}
+	rm ${filename}
+	rm ${filename_instant}
 	echo -e "\x1B[32mZip file for Android instant ready: ${filename_instant_zip}\x1B[0m"
 }
 
@@ -273,6 +275,7 @@ do
 		--instant)
 			is_android_instant=true
 			mode="release"
+			file_prefix_name+="_instant"
 			shift
 		;;
 		*) # Unknown option
@@ -314,7 +317,7 @@ then
 	else
 		# Build Android Instant APK
 		echo -e "\nStart build on \x1B[34m${android_platform} Instant APK\x1B[0m"
-		build ${android_platform} ${mode} "--settings=${android_instant_app_settings}"
+		build ${android_platform} ${mode} "--settings ${android_instant_app_settings}"
 		make_instant ${mode}
 
 		if $is_deploy; then
