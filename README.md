@@ -34,6 +34,7 @@ I recommend make link to `deployer.sh` in your path with name `deployer` (`ln -s
 `deployer abd`
 
 Override global settings for your projects inside `deployer` scripts. See **custom parameters** section to more info 
+
 To override global deployer settings, place `deployer_settings` file nearby deployer script file
 
 ## Usage
@@ -48,14 +49,20 @@ To override global deployer settings, place `deployer_settings` file nearby depl
 - `--instant` - make builder mode to Android Instant. It will always build in _Release_ mode
 
 Bundle files will be located at *./dist/bundle*
+
 If no version finded in `game.project`, it will be *0.0.0* as default
+
 Deployer need to run on root of your Defold project
+
 With name {ProjectName}\_{Version}\_{BuildMode}.[apk|ipa]
 
 ##	Example
 `./deployer.sh abd` - build, deploy and run Android bundle
+
 `./deployer.sh ird` - build and deploy iOS release bundle
+
 `./deployer.sh aibr` - build Android and iOS release bundles
+
 `./deployer.sh ab --instant` - build and preparing Android Instant Apps bundle
 
 You can pass params in any order you want, for example:
@@ -68,27 +75,38 @@ Copy `deployer_settings.template` with name `deployer_settings` and change it fo
 ```bash
 # Path to bob folder. It will find and save new bob files inside
 bob_folder={path_to_bob_folder}
+
 # Path to android signature key
 android_key={path_to_key.pk8}
+
 # Path to android signature certificate
 android_cer={path_to_certificate.pem}
+
 # ID of your ios development identity
 ios_identity_dev="AAXBBYY"
+
 # ID of your iod distribution identity
 ios_identity_dist="YYBBXXAA"
+
 # Path to ios development mobileprovision
 ios_prov_dev={path_to_ios_dev.mobileprovision}
+
 # Path to ios distribution mobileprovision
 ios_prov_dist={path_to_ios_dist.mobileprovision}
+
 # You can point bob version for project in format "version:sha"
 bob_sha="161:45635ad26f85009c52905724e242cc92dd252146"
+
 # If true, it will check and download latest bob versionn and it will ignore bob_sha
 use_latest_bob=false
+
 # Set to true, if you do not need to strip executables
 no_strip_executable=false
+
 # Android instant app settings.ini path to override
 # (Usually, you need it to override AndroidManifest.xml)
 android_instant_app_settings={path_to_android_settings_ini}
+
 # SDK path to build Android Instant app
 sdk_path={path_to_android_sdk}
 ```
