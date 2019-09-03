@@ -299,7 +299,7 @@ then
 		# Just build usual Android build
 		if $is_build ; then
 			echo -e "\nStart build on \x1B[34m${android_platform}\x1B[0m"
-			# build ${android_platform} ${mode}
+			build ${android_platform} ${mode}
 		fi
 
 		if $is_deploy; then
