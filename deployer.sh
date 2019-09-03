@@ -6,12 +6,7 @@
 ## for Defold Engine.
 ##
 ## Install:
-## ios-deloy: https://github.com/ios-control/ios-deploy
-## adb: https://developer.android.com/studio/releases/platform-tools
-## java: https://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html
-##
-##	Bundle files will be located at ./dist/bundle
-## With name {ProjectName}_{Version}_{BuildMode}.[apk|ipa]
+## See full instructions here: https://github.com/Insality/defold-deployer/blob/master/README.md
 ##
 ## Usage:
 ## bash deployer.sh [a][i][r][b][d] [--instant]
@@ -22,6 +17,7 @@
 ## 	d - deploy bundle to connected device
 ## 		it will deploy && run bundle on Android
 ## 		it will only deploy bundle on iOS (for now)
+## 	--instant - it preparing bundle for Android Instant Apps (always in release mode)
 ##
 ## 	Example:
 ##		./deployer.sh abd - build, deploy and run Android bundle
@@ -31,21 +27,6 @@
 ## 	You can pass params in any order you want, for example:
 ## 	./deployer.sh riba - same behaviour as aibr
 ##
-## Custom parameters:
-## You can setup custom parameters (like provisions, keys and certificate, bob version)
-## Deployer params can be overrided with ./deployer_settings script
-## If this file exist, it will run inside this script
-##
-## Just declare new global vars inside deployer_settings like this:
-##
-## 	ios_prov_dev=./provisions/dev.mobileprovision
-## 	ios_identity_dev="AAABBCUSTOM"
-## 	bob_sha="155:838cecd7a26c932e6be73421d98e51ba12f1d462"
-##
-
-## Setup provisions and certificates for your project
-## Global settings. Override it in ./deployer_settings
-
 
 # Exit on Cmd+C / Ctrl+C
 trap "exit" INT
