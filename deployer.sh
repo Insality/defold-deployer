@@ -127,7 +127,7 @@ bob() {
 	mode=$1
 	java -jar ${bob_path} --version
 
-	args="-jar ${bob_path} --archive -bo ./dist --variant $@"
+	args="-jar ${bob_path} --archive -bo ${dist_folder} --variant $@"
 
 	if ! $no_strip_executable; then
 		args+=" --strip-executable"
@@ -155,6 +155,9 @@ build() {
 	if [ ! -d ${bundle_folder} ]; then
 		mkdir ${bundle_folder}
 	fi
+	if [ ! -d ${version_folder} ]; then
+		mkdir ${version_folder}
+	fi
 	platform=$1
 	mode=$2
 	additional_params=$3
@@ -178,25 +181,26 @@ build() {
 	# Android platform
 	if [ ${platform} == ${android_platform} ]; then
 		echo "Start build android ${mode}"
-		bob ${mode} -brhtml ./dist/${platform}_report.html \
+		bob ${mode} -brhtml ${dist_folder}/${platform}_report.html \
 			--platform ${platform} -pk ${android_key} -ce ${android_cer} ${additional_params}
 
-		line="./dist/${title}/${title}.apk"
+		line="${dist_folder}/${title}/${title}.apk"
 		filename="${file_prefix_name}_${mode}.apk"
-		mv "${line}" "./dist/bundle/${filename}"
-		echo -e "\x1B[32mSave APK bundle at ./dist/bundle/${filename}\x1B[0m"
+		mv "${line}" "${version_folder}/${filename}"
+		echo -e "\x1B[32mSave APK bundle at ${version_folder}/${filename}\x1B[0m"
 	fi
 
 	# iOS platform
 	if [ ${platform} == ${ios_platform} ]; then
 		echo "Start build ios ${mode}"
-		bob ${mode} -brhtml ./dist/${platform}_report.html \
+		bob ${mode} -brhtml ${dist_folder}/${platform}_report.html \
 			--platform ${platform} --identity ${ident} -mp ${prov} ${additional_params}
 
-		line="./dist/${title}.ipa"
-		filename="${file_prefix_name}_${mode}.ipa"
-		mv "${line}" "./dist/bundle/${filename}"
-		echo -e "\x1B[32mSave IPA bundle at ./dist/bundle/${filename}\x1B[0m"
+		line="${dist_folder}/${title}"
+		filename="${file_prefix_name}_${mode}"
+		mv "${line}.app" "${version_folder}/${filename}.app"
+		mv "${line}.ipa" "${version_folder}/${filename}.ipa"
+		echo -e "\x1B[32mSave IPA bundle at ${version_folder}/${filename}.ipa\x1B[0m"
 	fi
 }
 
@@ -204,9 +208,9 @@ build() {
 make_instant() {
 	mode=$1
 	echo -e "\nPreparing APK for Android Instant game"
-	filename="./dist/bundle/${file_prefix_name}_${mode}.apk"
-	filename_instant="./dist/bundle/${file_prefix_name}_${mode}_align.apk"
-	filename_instant_zip="./dist/bundle/${file_prefix_name}_${mode}.apk.zip"
+	filename="${version_folder}/${file_prefix_name}_${mode}.apk"
+	filename_instant="${version_folder}/${file_prefix_name}_${mode}_align.apk"
+	filename_instant_zip="${version_folder}/${file_prefix_name}_${mode}.apk.zip"
 	${sdk_path}/zipalign -f 4 ${filename} ${filename_instant}
 	${sdk_path}/apksigner sign --key ${android_key_dist} --cert ${android_cer_dist} ${filename_instant}
 	zip -j ${filename_instant_zip} ${filename_instant}
@@ -220,13 +224,13 @@ deploy() {
 	platform=$1
 	mode=$2
 	if [ ${platform} == ${android_platform} ]; then
-		filename="./dist/bundle/${file_prefix_name}_${mode}.apk"
+		filename="${version_folder}/${file_prefix_name}_${mode}.apk"
 		echo "Deploy to Android from ${filename}"
 		adb install -r "${filename}"
 	fi
 
 	if [ ${platform} == ${ios_platform} ]; then
-		filename="./dist/bundle/${file_prefix_name}_${mode}.ipa"
+		filename="${version_folder}/${file_prefix_name}_${mode}.ipa"
 		echo "Deploy to iOS from ${filename}"
 		ios-deploy --bundle "${filename}"
 	fi
@@ -243,17 +247,7 @@ run() {
 	fi
 
 	if [ ${platform} == ${ios_platform} ]; then
-		filename="./dist/bundle/${file_prefix_name}_${mode}.ipa"
-		filename_app="./dist/bundle/${file_prefix_name}_${mode}.app"
-
-		echo "Unpack IPA file ${filename}..."
-
-		rm -r ./dist/bundle/Payload
-		rm -r ${filename_app}
-		tar -C ./dist/bundle -xzf ${filename}
-		mv -v "./dist/bundle/Payload/${title}.app" "${filename_app}"
-		rm -r ./dist/bundle/Payload
-
+		filename_app="${version_folder}/${file_prefix_name}_${mode}.app"
 		ios-deploy -I -m -b ${filename_app} | grep ${title_no_space}
 	fi
 }
