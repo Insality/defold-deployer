@@ -38,6 +38,7 @@ fi
 
 
 # Game project settings for deployer script
+settings_filename="settings_deployer"
 title=$(less game.project | grep "^title = " | cut -d "=" -f2 | sed -e 's/^[[:space:]]*//')
 version=$(less game.project | grep "^version = " | cut -d "=" -f2 | sed -e 's/^[[:space:]]*//')
 version=${version:='0.0.0'}
@@ -55,23 +56,23 @@ echo -e "\nProject: \x1B[36m${title} v${version}\x1B[0m"
 script_path="`dirname \"$0\"`"
 is_settings_exist=false
 
-if [ -f ${script_path}/deployer_settings ]; then
+if [ -f ${script_path}/${settings_filename} ]; then
 	is_settings_exist=true
-	echo "Using default deployer settings from ${script_path}/deployer_settings"
-	source ${script_path}/deployer_settings
+	echo "Using default deployer settings from ${script_path}/${settings_filename}"
+	source ${script_path}/${settings_filename}
 fi
 
-if [ -f ./deployer_settings ]; then
+if [ -f ./${settings_filename} ]; then
 	is_settings_exist=true
-	echo "Using custom deployer settings for ${title} from ${PWD}/deployer_settings"
-	source ./deployer_settings
+	echo "Using custom deployer settings for ${title} from ${PWD}/${settings_filename}"
+	source ./${settings_filename}
 fi
 
 if ! $is_settings_exist ; then
 	echo -e "\x1B[31m[ERROR]: No deployer settings file founded\x1B[0m"
 	echo "Place your default deployer settings at ${script_path}/"
 	echo "Place your project settings at root of your game project (./)"
-	echo "File name should be 'deployer_settings'"
+	echo "File name should be '${settings_filename}'"
 	echo "See template of settings here: https://github.com/Insality/defold-deployer"
 	exit
 fi
@@ -104,7 +105,7 @@ fi
 
 
 try_fix_libraries() {
-	echo "Possibly, libs was corrupter (interupt script while resolving libraries)"
+	echo "Possibly, libs was corrupted (interupt script while resolving libraries)"
 	echo "Trying to delete and redownload it (./.internal/lib/)"
 	rm -r ./.internal/lib/
 	java -jar ${bob_path} --email foo@bar.com --auth 12345 resolve
@@ -153,13 +154,18 @@ build() {
 	platform=$1
 	mode=$2
 	additional_params=$3
-	ident=${ios_identity_dev}
-	prov=${ios_prov_dev}
+
 	if [ ${mode} == "release" ]; then
 		ident=${ios_identity_dist}
 		prov=${ios_prov_dist}
+		android_cer=${android_cer_dist}
+		android_key=${android_key_dist}
 		echo -e "\x1B[32mBuild in Release mode\x1B[0m"
 	else
+		ident=${ios_identity_dev}
+		prov=${ios_prov_dev}
+		android_cer=${android_cer_dev}
+		android_key=${android_key_dev}
 		echo -e "\x1B[31mBuild in Debug mode\x1B[0m"
 	fi
 
@@ -167,8 +173,6 @@ build() {
 
 	# Android platform
 	if [ ${platform} == ${android_platform} ]; then
-		# Later add --architectures armv7-android,arm64-android
-		# for both architectures 32 and 64
 		echo "Start build android ${mode}"
 		bob ${mode} -brhtml ./dist/${platform}_report.html \
 			--platform ${platform} -pk ${android_key} -ce ${android_cer} ${additional_params}
@@ -200,7 +204,7 @@ make_instant() {
 	filename_instant="./dist/bundle/${file_prefix_name}_${mode}_align.apk"
 	filename_instant_zip="./dist/bundle/${file_prefix_name}_${mode}.apk.zip"
 	${sdk_path}/zipalign -f 4 ${filename} ${filename_instant}
-	${sdk_path}/apksigner sign --key ${android_key} --cert ${android_cer} ${filename_instant}
+	${sdk_path}/apksigner sign --key ${android_key_dist} --cert ${android_cer_dist} ${filename_instant}
 	zip -j ${filename_instant_zip} ${filename_instant}
 	rm ${filename}
 	rm ${filename_instant}
@@ -227,13 +231,15 @@ deploy() {
 
 run() {
 	platform=$1
+
 	if [ ${platform} == ${android_platform} ]; then
 		echo "Start game ${bundle_id}"
 		adb shell am start -n ${bundle_id}/com.dynamo.android.DefoldActivity
 		adb logcat -s defold
 	fi
-	if [ ${platform} == ${ios_platform}  ]; then
-		echo "Can't run ipa on iOS"
+
+	if [ ${platform} == ${ios_platform} ]; then
+		echo "Can't run ipa on iOS for now"
 	fi
 }
 
@@ -304,7 +310,7 @@ if $is_android
 then
 	if ! $is_android_instant; then
 		# Just build usual Android build
-		if $is_build ; then
+		if $is_build; then
 			echo -e "\nStart build on \x1B[34m${android_platform}\x1B[0m"
 			build ${android_platform} ${mode}
 		fi

@@ -1,11 +1,17 @@
 # Path to bob folder. It will find and save new bob files inside
 bob_folder={path_to_bob_folder}
 
-# Path to android signature key
-android_key={path_to_key.pk8}
+# Path to android signature key for debug
+android_key_dev={path_to_key.pk8}
 
-# Path to android signature certificate
-android_cer={path_to_certificate.pem}
+# Path to android signature certificate for debug
+android_cer_dev={path_to_certificate.pem}
+
+# Path to android signature key for release
+android_key_dist={path_to_key.pk8}
+
+# Path to android signature certificate for release
+android_cer_dist={path_to_certificate.pem}
 
 # ID of your ios development identity
 ios_identity_dev="AAXBBYY"
