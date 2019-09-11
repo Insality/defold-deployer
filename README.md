@@ -3,13 +3,13 @@
 Unique build && deploy script for mobile projects (Android, iOS) for Defold Engine
 
 ## Features
-- Single deployment script on all Defold mobile projects
-- One command to build, deploy and read logs from the mobile (now android only)
+- Single deployment script on all Defold mobile projects (Android, iOS)
+- One command to build, deploy and read logs from the mobile
 - Custom settings on project (provisions, bob version, etc)
-- Save your time on preparing debug & release builds
+- Save your time on preparing debug && release builds
 - Nice naming builds to save history of product versions
 - Auto *bob.jar* downloading. Flag **use_latest_bob** for using always last version of Defold
-- Android Instant build in one command
+- Android Instant build in one command (`deployer abr --instant`)
 - Repair dependencies, if they are corrupted
 
 ## Install
@@ -35,7 +35,7 @@ I recommend make link to `deployer.sh` in your path with name `deployer` (`ln -s
 
 Override global settings for your projects inside `deployer` scripts. See **custom parameters** section to more info 
 
-To override global deployer settings, place `deployer_settings` file nearby deployer script file
+To override global deployer settings, place `settings_deployer` file nearby deployer script file
 
 ## Usage
 `bash deployer.sh [a][i][r][b][d] [--instant]`
@@ -69,18 +69,24 @@ You can pass params in any order you want, for example:
 `./deployer.sh riba` - same behaviour as aibr
 
 ## Deployer parameters
-You can place global settings with file `deployer_settings` nearby with deployer script
-You can override global params for your project in `./deployer_settings` bash file on root of your project:
-Copy `deployer_settings.template` with name `deployer_settings` and change it for your needs
+You can place global settings with file `settings_deployer` nearby with deployer script
+You can override global params for your project in `./settings_deployer` bash file on root of your project:
+Copy `settings_deployer.template` with name `settings_deployer` and change it for your needs
 ```bash
 # Path to bob folder. It will find and save new bob files inside
 bob_folder={path_to_bob_folder}
 
-# Path to android signature key
-android_key={path_to_key.pk8}
+# Path to android signature key for debug
+android_key_dev={path_to_key.pk8}
 
-# Path to android signature certificate
-android_cer={path_to_certificate.pem}
+# Path to android signature certificate for debug
+android_cer_dev={path_to_certificate.pem}
+
+# Path to android signature key for release
+android_key_dist={path_to_key.pk8}
+
+# Path to android signature certificate for release
+android_cer_dist={path_to_certificate.pem}
 
 # ID of your ios development identity
 ios_identity_dev="AAXBBYY"

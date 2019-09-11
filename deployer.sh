@@ -15,13 +15,12 @@
 ## 	r - set build mode to Release
 ## 	b - build project (game bundle will be in ./dist folder)
 ## 	d - deploy bundle to connected device
-## 		it will deploy && run bundle on Android
-## 		it will only deploy bundle on iOS (for now)
+## 		it will deploy && run bundle on Android/iOS with reading logs to terminal
 ## 	--instant - it preparing bundle for Android Instant Apps (always in release mode)
 ##
 ## 	Example:
 ##		./deployer.sh abd - build, deploy and run Android bundle
-## 	./deployer.sh ird - build and deploy iOS release bundle
+## 	./deployer.sh ibd - build, deploy and run iOS release bundle
 ## 	./deployer.sh aibr - build Android and iOS release bundles
 ##
 ## 	You can pass params in any order you want, for example:
@@ -39,6 +38,9 @@ fi
 
 # Game project settings for deployer script
 settings_filename="settings_deployer"
+dist_folder="./dist"
+bundle_folder="${dist_folder}/bundle"
+
 title=$(less game.project | grep "^title = " | cut -d "=" -f2 | sed -e 's/^[[:space:]]*//')
 version=$(less game.project | grep "^version = " | cut -d "=" -f2 | sed -e 's/^[[:space:]]*//')
 version=${version:='0.0.0'}
@@ -47,6 +49,8 @@ bundle_id=$(less game.project | grep "^package = " | cut -d "=" -f2 | sed -e 's/
 file_prefix_name="${title_no_space}_${version}"
 android_platform="armv7-android"
 ios_platform="armv7-darwin"
+
+version_folder="${bundle_folder}/${version}"
 
 
 echo -e "\nProject: \x1B[36m${title} v${version}\x1B[0m"
@@ -145,11 +149,11 @@ bob() {
 
 
 build() {
-	if [ ! -d ./dist ]; then
-		mkdir ./dist
+	if [ ! -d ${dist_folder} ]; then
+		mkdir ${dist_folder}
 	fi
-	if [ ! -d ./dist/bundle ]; then
-		mkdir ./dist/bundle
+	if [ ! -d ${bundle_folder} ]; then
+		mkdir ${bundle_folder}
 	fi
 	platform=$1
 	mode=$2
@@ -231,15 +235,26 @@ deploy() {
 
 run() {
 	platform=$1
+	echo "Start game ${bundle_id}"
 
 	if [ ${platform} == ${android_platform} ]; then
-		echo "Start game ${bundle_id}"
 		adb shell am start -n ${bundle_id}/com.dynamo.android.DefoldActivity
 		adb logcat -s defold
 	fi
 
 	if [ ${platform} == ${ios_platform} ]; then
-		echo "Can't run ipa on iOS for now"
+		filename="./dist/bundle/${file_prefix_name}_${mode}.ipa"
+		filename_app="./dist/bundle/${file_prefix_name}_${mode}.app"
+
+		echo "Unpack IPA file ${filename}..."
+
+		rm -r ./dist/bundle/Payload
+		rm -r ${filename_app}
+		tar -C ./dist/bundle -xzf ${filename}
+		mv -v "./dist/bundle/Payload/${title}.app" "${filename_app}"
+		rm -r ./dist/bundle/Payload
+
+		ios-deploy -I -m -b ${filename_app} | grep ${title_no_space}
 	fi
 }
 
