@@ -1,3 +1,4 @@
+
 ![](defold-deployer.png)
 # Defold Deployer
 Unique build && deploy script for mobile projects (Android, iOS) for Defold Engine
@@ -13,7 +14,7 @@ Unique build && deploy script for mobile projects (Android, iOS) for Defold Engi
 - Repair dependencies, if they are corrupted
 
 ## Install
-For bob build tool you need to install java 1.8
+For bob build tool you need to install java JDK: https://openjdk.java.net/projects/jdk/11/
 
 For ios deploy by cable you need to install:
 - *ios-deloy*: https://github.com/ios-control/ios-deploy
@@ -22,7 +23,7 @@ For android deploy and read logs you need to install:
 - *adb*: https://developer.android.com/studio/releases/platform-tools
 
 For running `bob.jar` you need to install:
-- *java*: https://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html
+- *java*: https://openjdk.java.net/projects/jdk/11/
 
 For building Android Instant you need to make prepare:
 - *Insctructions*: [https://forum.defold.com/t/instruction-android-instant-app-creation/48471](https://forum.defold.com/t/instruction-android-instant-app-creation/48471)
@@ -30,12 +31,23 @@ For building Android Instant you need to make prepare:
 
 
 ## Setup
-I recommend make link to `deployer.sh` in your path with name `deployer` (`ln -s deployer.sh deployer`), chmod +x it and call it in your project folder like:
-`deployer abd`
+Run deployer.sh inside your game.project folder.
 
-Override global settings for your projects inside `deployer` scripts. See **custom parameters** section to more info 
+To create your settings file, just copy `setting_deployer.template` with name `settings_deployer` and place it in right place:
 
-To override global deployer settings, place `settings_deployer` file nearby deployer script file
+- **Global settings** - `settings_deployer` file nearby `deployer.sh` script
+- **Custom project settings** - `settings_deployer` file nearby `game.project` file
+
+Custom projects settings will override your global settings
+
+#### Recommendation
+Make link to `deployer.sh` file in your path with name `deployer` (via `ln -s deployer.sh deployer`)
+
+Add execution mode to it via `chmod +x` 
+
+Call it in your project folder like: `deployer abd`
+
+Place your `global settings` file nearby new `deployer` file link
 
 ## Usage
 `bash deployer.sh [a][i][r][b][d] [--instant]`
@@ -72,11 +84,14 @@ deployer.sh riba
 ```
 
 ## Deployer parameters
-You can place global settings with file `settings_deployer` nearby with deployer script
-You can override global params for your project in `./settings_deployer` bash file on root of your project:
+ - **Global settings** setup by `settings_deployer` file nearby with deployer script
+- **Custom project settings** setup by `settings_deployer` file nearby your `game.project` file on root of your project:
+
 Copy `settings_deployer.template` with name `settings_deployer` and change it for your needs
+
+Deployer parameters:
 ```bash
-# Path to bob folder. It will find and save new bob files inside
+# Path to bob folder. It will find and save new bob.jar files inside
 bob_folder={path_to_bob_folder}
 
 # Path to android signature key for debug
@@ -114,6 +129,7 @@ no_strip_executable=false
 
 # Android instant app settings.ini path to override
 # (Usually, you need it to override AndroidManifest.xml)
+# See instruction here: https://forum.defold.com/t/instruction-android-instant-app-creation/48471
 android_instant_app_settings={path_to_android_settings_ini}
 
 # SDK path to build Android Instant app
@@ -121,4 +137,6 @@ sdk_path={path_to_android_sdk}
 ```
 
 ## Author
-[Insality](http://github.com/Insality)
+Maxim Tuprikov, [Insality](http://github.com/Insality)
+MIT License
+
