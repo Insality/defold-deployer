@@ -37,10 +37,6 @@ fi
 
 
 # Game project settings for deployer script
-settings_filename="settings_deployer"
-dist_folder="./dist"
-bundle_folder="${dist_folder}/bundle"
-
 title=$(less game.project | grep "^title = " | cut -d "=" -f2 | sed -e 's/^[[:space:]]*//')
 version=$(less game.project | grep "^version = " | cut -d "=" -f2 | sed -e 's/^[[:space:]]*//')
 version=${version:='0.0.0'}
@@ -50,6 +46,9 @@ file_prefix_name="${title_no_space}_${version}"
 android_platform="armv7-android"
 ios_platform="armv7-darwin"
 
+settings_filename="settings_deployer"
+dist_folder="./dist"
+bundle_folder="${dist_folder}/bundle"
 version_folder="${bundle_folder}/${version}"
 
 
@@ -178,26 +177,28 @@ build() {
 
 	resolve_bob
 
+	filename="${file_prefix_name}_${mode}"
+
 	# Android platform
 	if [ ${platform} == ${android_platform} ]; then
+		line="${dist_folder}/${title}/${title}"
+
 		echo "Start build android ${mode}"
-		bob ${mode} -brhtml ${dist_folder}/${platform}_report.html \
+		bob ${mode} -brhtml ${version_folder}/${filename}_report.html \
 			--platform ${platform} -pk ${android_key} -ce ${android_cer} ${additional_params}
 
-		line="${dist_folder}/${title}/${title}.apk"
-		filename="${file_prefix_name}_${mode}.apk"
-		mv "${line}" "${version_folder}/${filename}"
-		echo -e "\x1B[32mSave APK bundle at ${version_folder}/${filename}\x1B[0m"
+		mv "${line}.apk" "${version_folder}/${filename}.apk"
+		echo -e "\x1B[32mSave APK bundle at ${version_folder}/${filename}.apk\x1B[0m"
 	fi
 
 	# iOS platform
 	if [ ${platform} == ${ios_platform} ]; then
+		line="${dist_folder}/${title}"
+
 		echo "Start build ios ${mode}"
-		bob ${mode} -brhtml ${dist_folder}/${platform}_report.html \
+		bob ${mode} -brhtml ${version_folder}/${filename}_report.html \
 			--platform ${platform} --identity ${ident} -mp ${prov} ${additional_params}
 
-		line="${dist_folder}/${title}"
-		filename="${file_prefix_name}_${mode}"
 		mv "${line}.app" "${version_folder}/${filename}.app"
 		mv "${line}.ipa" "${version_folder}/${filename}.ipa"
 		echo -e "\x1B[32mSave IPA bundle at ${version_folder}/${filename}.ipa\x1B[0m"
