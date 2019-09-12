@@ -1,4 +1,4 @@
-
+![](defold-deployer.png)
 # Defold Deployer
 Unique build && deploy script for mobile projects (Android, iOS) for Defold Engine
 
@@ -16,17 +16,17 @@ Unique build && deploy script for mobile projects (Android, iOS) for Defold Engi
 For bob build tool you need to install java 1.8
 
 For ios deploy by cable you need to install:
-*ios-deloy*: https://github.com/ios-control/ios-deploy
+- *ios-deloy*: https://github.com/ios-control/ios-deploy
 
 For android deploy and read logs you need to install:
-*adb*: https://developer.android.com/studio/releases/platform-tools
+- *adb*: https://developer.android.com/studio/releases/platform-tools
 
 For running `bob.jar` you need to install:
-*java*: https://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html
+- *java*: https://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html
 
 For building Android Instant you need to make prepare:
-[https://forum.defold.com/t/instruction-android-instant-app-creation/48471](https://forum.defold.com/t/instruction-android-instant-app-creation/48471)
-Deployer use `zip` command to prepare bundle for _Google Play_
+- *Insctructions*: [https://forum.defold.com/t/instruction-android-instant-app-creation/48471](https://forum.defold.com/t/instruction-android-instant-app-creation/48471)
+ - Deployer use `zip` command to prepare bundle for _Google Play_
 
 
 ## Setup
@@ -56,17 +56,20 @@ Deployer need to run on root of your Defold project
 
 With name {ProjectName}\_{Version}\_{BuildMode}.[apk|ipa]
 
-##	Example
-`./deployer.sh abd` - build, deploy and run Android bundle
-
-`./deployer.sh ird` - build and deploy iOS release bundle
-
-`./deployer.sh aibr` - build Android and iOS release bundles
-
-`./deployer.sh ab --instant` - build and preparing Android Instant Apps bundle
-
-You can pass params in any order you want, for example:
-`./deployer.sh riba` - same behaviour as aibr
+##	Examples
+```bash
+# Build, deploy and run Android bundle
+`./deployer.sh abd`
+# Deploy and run iOS release bundle
+`./deployer.sh ird`
+# Build Android and iOS release bundles
+`./deployer.sh aibr`
+# Build and preparing Android Instant Apps bundle
+`./deployer.sh ab --instant`
+# You can pass params in any order you want, for example:
+# Same behaviour as aibr
+`./deployer.sh riba`
+```
 
 ## Deployer parameters
 You can place global settings with file `settings_deployer` nearby with deployer script
@@ -103,7 +106,7 @@ ios_prov_dist={path_to_ios_dist.mobileprovision}
 # You can point bob version for project in format "version:sha"
 bob_sha="161:45635ad26f85009c52905724e242cc92dd252146"
 
-# If true, it will check and download latest bob versionn and it will ignore bob_sha
+# If true, it will check and download latest bob version. It will ignore bob_sha param
 use_latest_bob=false
 
 # Set to true, if you do not need to strip executables
@@ -118,4 +121,4 @@ sdk_path={path_to_android_sdk}
 ```
 
 ## Author
-Insality
+[Insality](http://github.com/Insality)
