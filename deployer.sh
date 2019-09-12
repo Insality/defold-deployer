@@ -178,6 +178,7 @@ build() {
 	resolve_bob
 
 	filename="${file_prefix_name}_${mode}"
+	is_build_success=true
 
 	# Android platform
 	if [ ${platform} == ${android_platform} ]; then
@@ -187,8 +188,7 @@ build() {
 		bob ${mode} -brhtml ${version_folder}/${filename}_report.html \
 			--platform ${platform} -pk ${android_key} -ce ${android_cer} ${additional_params}
 
-		mv "${line}.apk" "${version_folder}/${filename}.apk"
-		echo -e "\x1B[32mSave APK bundle at ${version_folder}/${filename}.apk\x1B[0m"
+		mv "${line}.apk" "${version_folder}/${filename}.apk" || is_build_success=false
 	fi
 
 	# iOS platform
@@ -200,8 +200,13 @@ build() {
 			--platform ${platform} --identity ${ident} -mp ${prov} ${additional_params}
 
 		mv "${line}.app" "${version_folder}/${filename}.app"
-		mv "${line}.ipa" "${version_folder}/${filename}.ipa"
-		echo -e "\x1B[32mSave IPA bundle at ${version_folder}/${filename}.ipa\x1B[0m"
+		mv "${line}.ipa" "${version_folder}/${filename}.ipa" || is_build_success=false
+	fi
+
+	if $is_build_success; then
+		echo -e "\x1B[32mSave bundle at ${version_folder}/${filename}\x1B[0m"
+	else
+		echo -e "\x1B[31mError during building...\x1B[0m"
 	fi
 }
 
