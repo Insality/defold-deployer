@@ -1,7 +1,7 @@
 
 ![](defold-deployer.png)
 # Defold Deployer
-Unique build && deploy script for mobile projects (Android, iOS) for Defold Engine
+Unique build && deploy script for mobile projects (Android, iOS), Defold Engine
 
 ## Features
 - Single deployment script on all Defold mobile projects (Android, iOS)
@@ -31,7 +31,7 @@ For building Android Instant you need to make prepare:
 
 
 ## Setup
-Run deployer.sh inside your game.project folder.
+Run `deployer.sh` inside your `game.project` folder.
 
 To create your settings file, just copy `setting_deployer.template` with name `settings_deployer` and place it in right place:
 
@@ -41,23 +41,22 @@ To create your settings file, just copy `setting_deployer.template` with name `s
 Custom projects settings will override your global settings
 
 #### Recommendation
-Make link to `deployer.sh` file in your path with name `deployer` (via `ln -s deployer.sh deployer`)
+Make link to `deployer.sh` file in your system path with name `deployer` (via `ln -s deployer.sh deployer`)
 
 Add execution mode to it via `chmod +x` 
 
+Place your **global settings** file nearby new `deployer` file link
+
 Call it in your project folder like: `deployer abd`
 
-Place your `global settings` file nearby new `deployer` file link
 
 ## Usage
 `bash deployer.sh [a][i][r][b][d] [--instant]`
 - `a` - add target platform Android
 - `i` - add target platform iOS
 - `r` - set build mode to Release
-- `b` - build project (game bundle will be in ./dist folder)
-- `d` - deploy bundle to connected device
-	- it will deploy && run bundle on Android
-	- it will only deploy bundle on iOS (for now)
+- `b` - build project (game bundle will be in ./dist/bundle/ folder)
+- `d` - deploy bundle && run to connected device. Auto start logging from connected device
 - `--instant` - make builder mode to Android Instant. It will always build in _Release_ mode
 
 Bundle files will be located at *./dist/bundle/{Version}/*
@@ -84,7 +83,7 @@ deployer.sh riba
 ```
 
 ## Deployer parameters
- - **Global settings** setup by `settings_deployer` file nearby with deployer script
+- **Global settings** setup by `settings_deployer` file nearby with deployer script
 - **Custom project settings** setup by `settings_deployer` file nearby your `game.project` file on root of your project:
 
 Copy `settings_deployer.template` with name `settings_deployer` and change it for your needs
