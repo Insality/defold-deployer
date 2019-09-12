@@ -48,27 +48,27 @@ To override global deployer settings, place `settings_deployer` file nearby depl
 	- it will only deploy bundle on iOS (for now)
 - `--instant` - make builder mode to Android Instant. It will always build in _Release_ mode
 
-Bundle files will be located at *./dist/bundle*
+Bundle files will be located at *./dist/bundle/{Version}/*
 
 If no version finded in `game.project`, it will be *0.0.0* as default
 
 Deployer need to run on root of your Defold project
 
-With name {ProjectName}\_{Version}\_{BuildMode}.[apk|ipa]
+Filename will be name {ProjectName}\_{Version}\_{BuildMode}.[apk|ipa]
 
 ##	Examples
 ```bash
 # Build, deploy and run Android bundle
-`./deployer.sh abd`
+deployer.sh abd
 # Deploy and run iOS release bundle
-`./deployer.sh ird`
+deployer.sh ird
 # Build Android and iOS release bundles
-`./deployer.sh aibr`
+deployer.sh aibr
 # Build and preparing Android Instant Apps bundle
-`./deployer.sh ab --instant`
+deployer.sh ab --instant
 # You can pass params in any order you want, for example:
 # Same behaviour as aibr
-`./deployer.sh riba`
+deployer.sh riba
 ```
 
 ## Deployer parameters
