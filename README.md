@@ -6,12 +6,12 @@ Unique build && deploy script for mobile projects (Android, iOS), Defold Engine
 ## Features
 - Single deployment script on all Defold mobile projects (Android, iOS)
 - One command to build, deploy and read logs from the mobile
-- Custom settings on project (provisions, bob version, etc)
+- Global and custom settings on project (provisions, bob version, etc)
 - Save your time on preparing debug && release builds
 - Nice naming builds to save history of product versions
 - Auto *bob.jar* downloading. Flag **use_latest_bob** for using always last version of Defold
 - Android Instant build in one command (`deployer abr --instant`)
-- Repair dependencies, if they are corrupted
+- Redownload dependencies, if they are corrupted
 
 ## Install
 For bob build tool you need to install java JDK: https://openjdk.java.net/projects/jdk/11/
