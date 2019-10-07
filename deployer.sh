@@ -9,7 +9,7 @@
 ## See full instructions here: https://github.com/Insality/defold-deployer/blob/master/README.md
 ##
 ## Usage:
-## bash deployer.sh [a][i][r][b][d] [--instant]
+## bash deployer.sh [a][i][r][b][d] [--instant] [--fast]
 ## 	a - add target platform Android
 ## 	i - add target platform iOS
 ## 	r - set build mode to Release
@@ -17,6 +17,7 @@
 ## 	d - deploy bundle to connected device
 ## 		it will deploy && run bundle on Android/iOS with reading logs to terminal
 ## 	--instant - it preparing bundle for Android Instant Apps (always in release mode)
+## 	--fast - build without resolve and only one Android platform (for faster builds)
 ##
 ## 	Example:
 ##		./deployer.sh abd - build, deploy and run Android bundle

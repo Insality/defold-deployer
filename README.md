@@ -58,6 +58,7 @@ Call it in your project folder like: `deployer abd`
 - `b` - build project (game bundle will be in ./dist/bundle/ folder)
 - `d` - deploy bundle && run to connected device. Auto start logging from connected device
 - `--instant` - make builder mode to Android Instant. It will always build in _Release_ mode
+- `--fast` - build without resolve and only one Android platform (for faster builds)
 
 Bundle files will be located at *./dist/bundle/{Version}/*
 
@@ -77,6 +78,8 @@ deployer.sh ird
 deployer.sh aibr
 # Build and preparing Android Instant Apps bundle
 deployer.sh ab --instant
+# Build, deploy and run Android bundle in fast mode (useful for testing)
+deployer.sh abd --fast
 # You can pass params in any order you want, for example:
 # Same behaviour as aibr
 deployer.sh riba
