@@ -175,7 +175,9 @@ build() {
 		echo -e "\x1B[31mBuild in Debug mode\x1B[0m"
 	fi
 
-	resolve_bob
+	if $is_resolve; then
+		resolve_bob
+	fi
 
 	filename="${file_prefix_name}_${mode}"
 	is_build_success=true
@@ -183,6 +185,11 @@ build() {
 	# Android platform
 	if [ ${platform} == ${android_platform} ]; then
 		line="${dist_folder}/${title}/${title}"
+
+		if $is_fast_debug; then
+			echo "Build only one platform for faster build"
+			additional_params=" -ar armv7-android $additional_params"
+		fi
 
 		echo "Start build android ${mode}"
 		bob ${mode} -brhtml ${version_folder}/${filename}_report.html \
@@ -265,7 +272,9 @@ is_build=false
 is_deploy=false
 is_android=false
 is_ios=false
+is_resolve=true
 is_android_instant=false
+is_fast_debug=false
 mode="debug"
 
 for (( i=0; i<${#arg}; i++ )); do
@@ -297,6 +306,11 @@ do
 			is_android_instant=true
 			mode="release"
 			file_prefix_name+="_instant"
+			shift
+		;;
+		--fast)
+			is_fast_debug=true
+			is_resolve=false
 			shift
 		;;
 		*) # Unknown option
