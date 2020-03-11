@@ -30,6 +30,7 @@
 
 # Exit on Cmd+C / Ctrl+C
 trap "exit" INT
+set -e
 
 if [ ! -f ./game.project ]; then
 	echo -e "\x1B[31m[ERROR]: ./game.project not exist\x1B[0m"
@@ -93,7 +94,7 @@ if $use_latest_bob; then
 	echo ${bob_sha}
 	bob_version=$(sed 's/[^0-9.]*\([0-9.]*\).*/\1/' <<< $INFO)
 	bob_version="$(cut -d "." -f3 <<< "$bob_version")"
-	echo ${bob_versio}
+	echo ${bob_version}
 fi
 
 echo -e "Using bob version \x1B[35m${bob_version}\x1B[0m SHA: ${bob_sha}"
