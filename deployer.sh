@@ -21,7 +21,7 @@
 ##
 ## 	Example:
 ##		./deployer.sh abd - build, deploy and run Android bundle
-## 	./deployer.sh ibd - build, deploy and run iOS release bundle
+## 	./deployer.sh ibdr - build, deploy and run iOS release bundle
 ## 	./deployer.sh aibr - build Android and iOS release bundles
 ##
 ## 	You can pass params in any order you want, for example:
@@ -110,7 +110,7 @@ fi
 
 
 try_fix_libraries() {
-	echo "Possibly, libs was corrupted (interupt script while resolving libraries)"
+	echo "Possibly, libs was corrupted (script interrupted while resolving libraries)"
 	echo "Trying to delete and redownload it (./.internal/lib/)"
 	rm -r ./.internal/lib/
 	java -jar ${bob_path} --email foo@bar.com --auth 12345 resolve
