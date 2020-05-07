@@ -22,7 +22,7 @@
 ##
 ## 	Example:
 ##		./deployer.sh abd - build, deploy and run Android bundle
-## 	./deployer.sh ibd - build, deploy and run iOS release bundle
+## 	./deployer.sh ibdr - build, deploy and run iOS release bundle
 ## 	./deployer.sh aibr - build Android and iOS release bundles
 ##
 ## 	You can pass params in any order you want, for example:
@@ -31,6 +31,7 @@
 
 # Exit on Cmd+C / Ctrl+C
 trap "exit" INT
+set -e
 
 if [ ! -f ./game.project ]; then
 	echo -e "\x1B[31m[ERROR]: ./game.project not exist\x1B[0m"
@@ -94,7 +95,7 @@ if $use_latest_bob; then
 	echo ${bob_sha}
 	bob_version=$(sed 's/[^0-9.]*\([0-9.]*\).*/\1/' <<< $INFO)
 	bob_version="$(cut -d "." -f3 <<< "$bob_version")"
-	echo ${bob_versio}
+	echo ${bob_version}
 fi
 
 echo -e "Using bob version \x1B[35m${bob_version}\x1B[0m SHA: ${bob_sha}"
@@ -110,7 +111,7 @@ fi
 
 
 try_fix_libraries() {
-	echo "Possibly, libs was corrupted (interupt script while resolving libraries)"
+	echo "Possibly, libs was corrupted (script interrupted while resolving libraries)"
 	echo "Trying to delete and redownload it (./.internal/lib/)"
 	rm -r ./.internal/lib/
 	java -jar ${bob_path} --email foo@bar.com --auth 12345 resolve
