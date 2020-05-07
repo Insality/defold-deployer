@@ -31,6 +31,9 @@ bob_sha="161:45635ad26f85009c52905724e242cc92dd252146"
 # If true, it will check and download latest bob version. It will ignore bob_sha param
 use_latest_bob=false
 
+# If true, add `-l yes` build param for publish live content
+is_live_content=false
+
 # Set to true, if you do not need to strip executables
 no_strip_executable=false
 

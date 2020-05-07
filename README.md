@@ -51,7 +51,7 @@ Call it in your project folder like: `deployer abd`
 
 
 ## Usage
-`bash deployer.sh [a][i][r][b][d] [--instant]`
+`bash deployer.sh [a][i][r][b][d] [--instant] [--fast] [--noresolve]`
 - `a` - add target platform Android
 - `i` - add target platform iOS
 - `r` - set build mode to Release
@@ -59,6 +59,7 @@ Call it in your project folder like: `deployer abd`
 - `d` - deploy bundle && run to connected device. Auto start logging from connected device
 - `--instant` - make builder mode to Android Instant. It will always build in _Release_ mode
 - `--fast` - build without resolve and only one Android platform (for faster builds)
+- `--noresolve` - build without dependency resolve
 
 Bundle files will be located at *./dist/bundle/{Version}/*
 
@@ -125,6 +126,9 @@ bob_sha="161:45635ad26f85009c52905724e242cc92dd252146"
 
 # If true, it will check and download latest bob version. It will ignore bob_sha param
 use_latest_bob=false
+
+# If true, add `-l yes` build param for publish live content
+is_live_content=false
 
 # Set to true, if you do not need to strip executables
 no_strip_executable=false

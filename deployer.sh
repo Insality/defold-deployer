@@ -9,7 +9,7 @@
 ## See full instructions here: https://github.com/Insality/defold-deployer/blob/master/README.md
 ##
 ## Usage:
-## bash deployer.sh [a][i][r][b][d] [--instant] [--fast]
+## bash deployer.sh [a][i][r][b][d] [--instant] [--fast] [--noresolve]
 ## 	a - add target platform Android
 ## 	i - add target platform iOS
 ## 	r - set build mode to Release
@@ -18,6 +18,7 @@
 ## 		it will deploy && run bundle on Android/iOS with reading logs to terminal
 ## 	--instant - it preparing bundle for Android Instant Apps (always in release mode)
 ## 	--fast - build without resolve and only one Android platform (for faster builds)
+## 	--noresolve - build without dependency resolve
 ##
 ## 	Example:
 ##		./deployer.sh abd - build, deploy and run Android bundle
@@ -192,6 +193,11 @@ build() {
 			additional_params=" -ar armv7-android $additional_params"
 		fi
 
+		if $is_live_content; then
+			echo "Add publishing live content to build"
+			additional_params=" -l yes $additional_params"
+		fi
+
 		echo "Start build android ${mode}"
 		bob ${mode} -brhtml ${version_folder}/${filename}_report.html \
 			--platform ${platform} -pk ${android_key} -ce ${android_cer} ${additional_params}
@@ -207,6 +213,7 @@ build() {
 		bob ${mode} -brhtml ${version_folder}/${filename}_report.html \
 			--platform ${platform} --identity ${ident} -mp ${prov} ${additional_params}
 
+		rm -rf "${version_folder}/${filename}.app"
 		mv "${line}.app" "${version_folder}/${filename}.app"
 		mv "${line}.ipa" "${version_folder}/${filename}.ipa" || is_build_success=false
 	fi
@@ -311,6 +318,10 @@ do
 		;;
 		--fast)
 			is_fast_debug=true
+			is_resolve=false
+			shift
+		;;
+		--noresolve)
 			is_resolve=false
 			shift
 		;;
