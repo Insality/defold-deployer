@@ -2,16 +2,17 @@
 ### Author: Insality <insality@gmail.com>, 04.2019
 ## (c) Insality Games
 ##
-## Unique build && deploy script for mobile projects (Android, iOS)
+## Unique build && deploy script for mobile projects (Android, iOS, HTML5)
 ## for Defold Engine.
 ##
 ## Install:
 ## See full instructions here: https://github.com/Insality/defold-deployer/blob/master/README.md
 ##
 ## Usage:
-## bash deployer.sh [a][i][r][b][d] [--instant] [--fast] [--noresolve]
+## bash deployer.sh [a][i][h][r][b][d] [--instant] [--fast] [--noresolve]
 ## 	a - add target platform Android
 ## 	i - add target platform iOS
+## 	h - add target platform HTML5
 ## 	r - set build mode to Release
 ## 	b - build project (game bundle will be in ./dist folder)
 ## 	d - deploy bundle to connected device
@@ -48,6 +49,7 @@ bundle_id=$(less game.project | grep "^package = " | cut -d "=" -f2 | sed -e 's/
 file_prefix_name="${title_no_space}_${version}"
 android_platform="armv7-android"
 ios_platform="armv7-darwin"
+html_platform="js-web"
 
 settings_filename="settings_deployer"
 dist_folder="./dist"
@@ -200,7 +202,7 @@ build() {
 		fi
 
 		echo "Start build android ${mode}"
-		bob ${mode} -brhtml ${version_folder}/${filename}_report.html \
+		bob ${mode} -brhtml ${version_folder}/${filename}_android_report.html \
 			--platform ${platform} -pk ${android_key} -ce ${android_cer} ${additional_params}
 
 		mv "${line}.apk" "${version_folder}/${filename}.apk" || is_build_success=false
@@ -211,12 +213,26 @@ build() {
 		line="${dist_folder}/${title}"
 
 		echo "Start build ios ${mode}"
-		bob ${mode} -brhtml ${version_folder}/${filename}_report.html \
+		bob ${mode} -brhtml ${version_folder}/${filename}_ios_report.html \
 			--platform ${platform} --identity ${ident} -mp ${prov} ${additional_params}
 
 		rm -rf "${version_folder}/${filename}.app"
 		mv "${line}.app" "${version_folder}/${filename}.app"
 		mv "${line}.ipa" "${version_folder}/${filename}.ipa" || is_build_success=false
+	fi
+
+	# HTML5 platform
+	if [ ${platform} == ${html_platform} ]; then
+		line="${dist_folder}/${title}"
+
+		echo "Start build HTML5 ${mode}"
+		bob ${mode} -brhtml ${version_folder}/${filename}_html_report.html \
+			--platform ${platform} ${additional_params}
+
+		rm -rf "${version_folder}/${filename}_html"
+		rm -f "${version_folder}/${filename}_html.zip"
+		mv "${line}" "${version_folder}/${filename}_html"
+		zip "${version_folder}/${filename}_html.zip" -r "${version_folder}/${filename}_html"
 	fi
 
 	if $is_build_success; then
@@ -256,6 +272,15 @@ deploy() {
 		echo "Deploy to iOS from ${filename}"
 		ios-deploy --bundle "${filename}"
 	fi
+
+	if [ ${platform} == ${html_platform} ]; then
+		filename="${version_folder}/${file_prefix_name}_${mode}_html/"
+		echo "Start python server and open in browser ${filename:1}"
+
+		open "http://localhost:8000${filename:1}"
+		python --version
+		python -m "SimpleHTTPServer"
+	fi
 }
 
 
@@ -281,6 +306,7 @@ is_build=false
 is_deploy=false
 is_android=false
 is_ios=false
+is_html=false
 is_resolve=true
 is_android_instant=false
 is_fast_debug=false
@@ -302,6 +328,9 @@ for (( i=0; i<${#arg}; i++ )); do
 	fi
 	if [ $a == "i" ]; then
 		is_ios=true
+	fi
+	if [ $a == "h" ]; then
+		is_html=true
 	fi
 done
 
@@ -371,6 +400,19 @@ then
 		if $is_deploy; then
 			echo "No autodeploy for Instant APK builds..."
 		fi
+	fi
+fi
+
+if $is_html
+then
+	echo "HTML build"
+	if $is_build; then
+		echo -e "\nStart build on \x1B[33m${html_platform}\x1B[0m"
+		build ${html_platform} ${mode}
+	fi
+
+	if $is_deploy; then
+		deploy ${html_platform} ${mode}
 	fi
 fi
 

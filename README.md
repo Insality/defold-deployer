@@ -1,10 +1,10 @@
 
 ![](defold-deployer.png)
 # Defold Deployer
-Unique build && deploy script for mobile projects (Android, iOS), Defold Engine
+Unique build && deploy script for mobile projects (Android, iOS, HTML5), Defold Engine
 
 ## Features
-- Single deployment script on all Defold mobile projects (Android, iOS)
+- Single deployment script on all Defold mobile projects (Android, iOS, HTML5)
 - One command to build, deploy and read logs from the mobile
 - Global and custom settings on project (provisions, bob version, etc)
 - Save your time on preparing debug && release builds
@@ -17,13 +17,17 @@ Unique build && deploy script for mobile projects (Android, iOS), Defold Engine
 For bob build tool you need to install java JDK: https://openjdk.java.net/projects/jdk/11/
 
 For ios deploy by cable you need to install:
-- *ios-deloy*: https://github.com/ios-control/ios-deploy
+- *ios-deploy*: https://github.com/ios-control/ios-deploy
 
 For android deploy and read logs you need to install:
 - *adb*: https://developer.android.com/studio/releases/platform-tools
 
 For running `bob.jar` you need to install:
 - *java*: https://openjdk.java.net/projects/jdk/11/
+
+For HTML5 builds you need to install:
+- Deployer use `zip` command to pack HTML5 build into zip file
+- Deployer use `python 2` to run HTTP Server for deploy
 
 For building Android Instant you need to make prepare:
 - *Insctructions*: [https://forum.defold.com/t/instruction-android-instant-app-creation/48471](https://forum.defold.com/t/instruction-android-instant-app-creation/48471)
@@ -51,9 +55,10 @@ Call it in your project folder like: `deployer abd`
 
 
 ## Usage
-`bash deployer.sh [a][i][r][b][d] [--instant] [--fast] [--noresolve]`
+`bash deployer.sh [a][i][h][r][b][d] [--instant] [--fast] [--noresolve]`
 - `a` - add target platform Android
 - `i` - add target platform iOS
+- `h` - add target platform HTML5
 - `r` - set build mode to Release
 - `b` - build project (game bundle will be in ./dist/bundle/ folder)
 - `d` - deploy bundle && run to connected device. Auto start logging from connected device
@@ -77,6 +82,8 @@ deployer.sh abd
 deployer.sh ird
 # Build Android and iOS release bundles
 deployer.sh aibr
+# Build and run HTML5 debug build
+deployer.sh hdb
 # Build and preparing Android Instant Apps bundle
 deployer.sh ab --instant
 # Build, deploy and run Android bundle in fast mode (useful for testing)
