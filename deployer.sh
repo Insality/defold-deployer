@@ -89,9 +89,10 @@ fi
 ### BOB SELECT
 bob_version="$(cut -d ":" -f1 <<< "$bob_sha")"
 bob_sha="$(cut -d ":" -f2 <<< "$bob_sha")"
+bob_channel="${bob_channel:-"stable"}"
 
 if $use_latest_bob; then
-	INFO=$(curl -s http://d.defold.com/stable/info.json)
+	INFO=$(curl -s http://d.defold.com/${bob_channel}/info.json)
 	echo "Latest bob: ${INFO}"
 	bob_sha=$(sed 's/.*sha1": "\(.*\)".*/\1/' <<< $INFO)
 	echo ${bob_sha}
@@ -104,18 +105,17 @@ echo -e "Using bob version \x1B[35m${bob_version}\x1B[0m SHA: ${bob_sha}"
 
 bob_path="${bob_folder}bob${bob_version}.jar"
 if [ ! -f ${bob_path} ]; then
-	# Get the bob from SHA1
-	# SHA1=$(curl -s http://d.defold.com/stable/info.json | sed 's/.*sha1": "\(.*\)".*/\1/')
-	BOB_URL="http://d.defold.com/archive/${bob_sha}/bob/bob.jar"
+	BOB_URL="https://d.defold.com/archive/${bob_channel}/${bob_sha}/bob/bob.jar"
 	echo "Unable to find bob${bob_version}.jar. Downloading it from d.defold.com: ${BOB_URL}}"
-	curl -o ${bob_path} ${BOB_URL}
+	echo "curl -L -o ${bob_path} ${BOB_URL}"
+	curl -L -o ${bob_path} ${BOB_URL}
 fi
 
 
 try_fix_libraries() {
 	echo "Possibly, libs was corrupted (script interrupted while resolving libraries)"
 	echo "Trying to delete and redownload it (./.internal/lib/)"
-	rm -r ./.internal/lib/
+	# rm -r ./.internal/lib/
 	java -jar ${bob_path} --email foo@bar.com --auth 12345 resolve
 }
 
@@ -166,17 +166,19 @@ build() {
 	mode=$2
 	additional_params=$3
 
+	build_server=${build_server:-"https://build.defold.com"}
+
 	if [ ${mode} == "release" ]; then
 		ident=${ios_identity_dist}
 		prov=${ios_prov_dist}
-		android_cer=${android_cer_dist}
-		android_key=${android_key_dist}
+		android_keystore=${android_keystore_dist}
+		android_keystore_password=${android_keystore_password_dist}
 		echo -e "\x1B[32mBuild in Release mode\x1B[0m"
 	else
 		ident=${ios_identity_dev}
 		prov=${ios_prov_dev}
-		android_cer=${android_cer_dev}
-		android_key=${android_key_dev}
+		android_keystore=${android_keystore_dev}
+		android_keystore_password=${android_keystore_password_dev}
 		echo -e "\x1B[31mBuild in Debug mode\x1B[0m"
 	fi
 
@@ -203,7 +205,9 @@ build() {
 
 		echo "Start build android ${mode}"
 		bob ${mode} -brhtml ${version_folder}/${filename}_android_report.html \
-			--platform ${platform} -pk ${android_key} -ce ${android_cer} ${additional_params}
+			--platform ${platform} --keystore ${android_keystore} \
+			--keystore-pass ${android_keystore_password} --build-server ${build_server} \
+			${additional_params}
 
 		mv "${line}.apk" "${version_folder}/${filename}.apk" || is_build_success=false
 	fi
@@ -214,7 +218,8 @@ build() {
 
 		echo "Start build ios ${mode}"
 		bob ${mode} -brhtml ${version_folder}/${filename}_ios_report.html \
-			--platform ${platform} --identity ${ident} -mp ${prov} ${additional_params}
+			--platform ${platform} --identity ${ident} -mp ${prov} \
+			--build-server ${build_server} ${additional_params}
 
 		rm -rf "${version_folder}/${filename}.app"
 		mv "${line}.app" "${version_folder}/${filename}.app"
