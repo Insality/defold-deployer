@@ -175,8 +175,8 @@ bob() {
 	fi
 
 	if [ ${mode} == "headless" ]; then
-		echo "Build with distclean and compression. Headless mode"
-		args+=" -tc true build bundle distclean"
+		echo "Build with distclean and without compression. Headless mode"
+		args+=" build bundle distclean"
 	fi
 
 	echo -e "\nBuild command: java ${args}"

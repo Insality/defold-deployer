@@ -14,10 +14,10 @@ Unique build && deploy script for *Defold* projects (Android, iOS, HTML5, Linux,
 - Save your time on preparing debug && release builds
 - Nice naming builds to save history of product versions
 - Auto *bob.jar* downloading. Flag **use_latest_bob** for using always last version of *Defold*
-- Select Bob channel (stable/beta) and Defold build server via settings file
+- Select Bob channel (stable/beta/alpha) and Defold build server via settings file
 - Use incremental value for last number in version (enable via _enable incremental version_)
 - Headless build && run for your unit-tests on CI
-- Add additional info to *game.project*: *commit SHA* and *build time*
+- Add additional info to *game.project*: *project.commit_sha*  and *project.build time*
 - Android Instant build in one command (`deployer abr --instant`)
 - Redownload dependencies, if they are corrupted
 
@@ -63,7 +63,7 @@ Call it in your project folder like: `deployer abd`
 
 
 ## Usage
-`bash deployer.sh [a][i][h][w][l][m][r][b][d] [--fast] [--no-resolve] [--instant] [--settings {filename}] [--headless] [--param {x}]`
+`bash deployer.sh [a][i][h][w][l][m][r][b][d] [--fast] [--no-resolve] [--instant] [--settings {filename}] [--headless]`
 - `a` - add target platform Android
 - `i` - add target platform iOS
 - `h` - add target platform HTML5
@@ -73,8 +73,7 @@ Call it in your project folder like: `deployer abd`
 - `r` - set build mode to Release
 - `b` - build project (game bundle will be in ./dist/bundle/ folder)
 - `d` - deploy bundle && run to connected device. Auto start logging from connected device
-- `--settings` {filename} - add settings file to build params. Can be used several times
-- `--param {x}` - add flag {x} to bob.jar. Can be used several times
+- `--settings {filename}` - add settings file to build params. Can be used several times
 - `--fast` - build without resolve and only one Android platform (for faster builds)
 - `--headless` - set mode to headless. Override release mode
 - `--no-resolve` - build without dependency resolve
@@ -82,7 +81,7 @@ Call it in your project folder like: `deployer abd`
 
 Bundle files will be located at *./dist/bundle/{Version}/*
 
-If no version finded in `game.project`, it will be *0.0.0* as default
+If no version found in `game.project`, it will be *0.0.0* as default
 
 Deployer need to run on root of your Defold project
 
