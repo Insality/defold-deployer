@@ -9,7 +9,7 @@
 ## See full instructions here: https://github.com/Insality/defold-deployer/blob/master/README.md
 ##
 ## Usage:
-## bash deployer.sh [a][i][h][r][b][d] [--instant] [--fast] [--noresolve]
+## bash deployer.sh [a][i][h][r][b][d] [--instant] [--fast] [--no-resolve]
 ## 	a - add target platform Android
 ## 	i - add target platform iOS
 ## 	h - add target platform HTML5
@@ -19,7 +19,10 @@
 ## 		it will deploy && run bundle on Android/iOS with reading logs to terminal
 ## 	--instant - it preparing bundle for Android Instant Apps (always in release mode)
 ## 	--fast - build without resolve and only one Android platform (for faster builds)
-## 	--noresolve - build without dependency resolve
+## 	--no-resolve - build without dependency resolve
+## 	--headless - set mode to headless. Override release mode
+## 	--settings - add settings file to build params. Can be used several times
+## 	--param {x} - add flag {x} to bob.jar. Can be used several times
 ##
 ## 	Example:
 ##		./deployer.sh abd - build, deploy and run Android bundle
@@ -30,8 +33,9 @@
 ## 	./deployer.sh riba - same behaviour as aibr
 ##
 
-# Exit on Cmd+C / Ctrl+C
+### Exit on Cmd+C / Ctrl+C
 trap "exit" INT
+trap clean EXIT
 set -e
 
 if [ ! -f ./game.project ]; then
@@ -40,39 +44,20 @@ if [ ! -f ./game.project ]; then
 fi
 
 
-# Game project settings for deployer script
-title=$(less game.project | grep "^title = " | cut -d "=" -f2 | sed -e 's/^[[:space:]]*//')
-version=$(less game.project | grep "^version = " | cut -d "=" -f2 | sed -e 's/^[[:space:]]*//')
-version=${version:='0.0.0'}
-title_no_space=$(echo -e "${title}" | tr -d '[[:space:]]')
-bundle_id=$(less game.project | grep "^package = " | cut -d "=" -f2 | sed -e 's/^[[:space:]]*//')
-file_prefix_name="${title_no_space}_${version}"
-android_platform="armv7-android"
-ios_platform="armv7-darwin"
-html_platform="js-web"
-
-settings_filename="settings_deployer"
-dist_folder="./dist"
-bundle_folder="${dist_folder}/bundle"
-version_folder="${bundle_folder}/${version}"
-
-
-echo -e "\nProject: \x1B[36m${title} v${version}\x1B[0m"
-
-
 ### SETTINGS LOADING
+settings_filename="settings_deployer"
 script_path="`dirname \"$0\"`"
 is_settings_exist=false
 
 if [ -f ${script_path}/${settings_filename} ]; then
 	is_settings_exist=true
-	echo "Using default deployer settings from ${script_path}/${settings_filename}"
+	echo -e "Using default deployer settings from \x1B[33m${script_path}/${settings_filename}\x1B[0m"
 	source ${script_path}/${settings_filename}
 fi
 
 if [ -f ./${settings_filename} ]; then
 	is_settings_exist=true
-	echo "Using custom deployer settings for ${title} from ${PWD}/${settings_filename}"
+	echo -e "Using custom deployer settings from \x1B[33m${PWD}/${settings_filename}\x1B[0m"
 	source ./${settings_filename}
 fi
 
@@ -81,12 +66,41 @@ if ! $is_settings_exist ; then
 	echo "Place your default deployer settings at ${script_path}/"
 	echo "Place your project settings at root of your game project (./)"
 	echo "File name should be '${settings_filename}'"
-	echo "See template of settings here: https://github.com/Insality/defold-deployer"
+	echo "See settings template here: https://github.com/Insality/defold-deployer"
 	exit
 fi
 
 
-### BOB SELECT
+### Constants
+commit_sha=`git rev-parse --verify HEAD`
+build_time=`date -u +"%Y-%m-%dT%H:%M:%SZ"`
+android_platform="armv7-android"
+ios_platform="armv7-darwin"
+html_platform="js-web"
+version_settings_filename="deployer_version_settings.txt"
+dist_folder="./dist"
+bundle_folder="${dist_folder}/bundle"
+
+
+### Game project settings for deployer script
+title=$(less game.project | grep "^title = " | cut -d "=" -f2 | sed -e 's/^[[:space:]]*//')
+version=$(less game.project | grep "^version = " | cut -d "=" -f2 | sed -e 's/^[[:space:]]*//')
+version=${version:='0.0.0'}
+title_no_space=$(echo -e "${title}" | tr -d '[[:space:]]')
+bundle_id=$(less game.project | grep "^package = " | cut -d "=" -f2 | sed -e 's/^[[:space:]]*//')
+
+### Override last version number with commits count
+if $set_commits_to_version; then
+	commits_count=`git rev-list --all --count`
+	version="${version%.*}.$commits_count"
+fi
+
+file_prefix_name="${title_no_space}_${version}"
+version_folder="${bundle_folder}/${version}"
+echo -e "\nProject: \x1B[36m${title} v${version}\x1B[0m SHA: \x1B[35m${commit_sha}\x1B[0m"
+
+
+### Bob select
 bob_version="$(cut -d ":" -f1 <<< "$bob_sha")"
 bob_sha="$(cut -d ":" -f2 <<< "$bob_sha")"
 bob_channel="${bob_channel:-"stable"}"
@@ -101,7 +115,7 @@ if $use_latest_bob; then
 	echo ${bob_version}
 fi
 
-echo -e "Using bob version \x1B[35m${bob_version}\x1B[0m SHA: ${bob_sha}"
+echo -e "Using Bob version \x1B[35m${bob_version}\x1B[0m SHA: \x1B[35m${bob_sha}\x1B[0m"
 
 bob_path="${bob_folder}bob${bob_version}.jar"
 if [ ! -f ${bob_path} ]; then
@@ -115,7 +129,7 @@ fi
 try_fix_libraries() {
 	echo "Possibly, libs was corrupted (script interrupted while resolving libraries)"
 	echo "Trying to delete and redownload it (./.internal/lib/)"
-	# rm -r ./.internal/lib/
+	rm -r ./.internal/lib/
 	java -jar ${bob_path} --email foo@bar.com --auth 12345 resolve
 }
 
@@ -123,12 +137,13 @@ try_fix_libraries() {
 resolve_bob() {
 	echo "Resolving libraries..."
 	java -jar ${bob_path} --email foo@bar.com --auth 12345 resolve || try_fix_libraries
+	echo ""
 }
 
 
 bob() {
-	echo "Building project..."
 	mode=$1
+	java --version
 	java -jar ${bob_path} --version
 
 	args="-jar ${bob_path} --archive -bo ${dist_folder} --variant $@"
@@ -138,7 +153,7 @@ bob() {
 	fi
 
 	if [ ${mode} == "debug" ]; then
-		echo "Build without distclean and compression for faster build time"
+		echo "Build without distclean and compression. Debug mode"
 		args+=" build bundle"
 	fi
 
@@ -174,7 +189,8 @@ build() {
 		android_keystore=${android_keystore_dist}
 		android_keystore_password=${android_keystore_password_dist}
 		echo -e "\x1B[32mBuild in Release mode\x1B[0m"
-	else
+	fi
+	if [ ${mode} == "debug" ]; then
 		ident=${ios_identity_dev}
 		prov=${ios_prov_dev}
 		android_keystore=${android_keystore_dev}
@@ -266,6 +282,7 @@ make_instant() {
 deploy() {
 	platform=$1
 	mode=$2
+
 	if [ ${platform} == ${android_platform} ]; then
 		filename="${version_folder}/${file_prefix_name}_${mode}.apk"
 		echo "Deploy to Android from ${filename}"
@@ -291,7 +308,7 @@ deploy() {
 
 run() {
 	platform=$1
-	echo "Start game ${bundle_id}"
+	mode=$2
 
 	if [ ${platform} == ${android_platform} ]; then
 		adb shell am start -n ${bundle_id}/com.dynamo.android.DefoldActivity
@@ -302,6 +319,11 @@ run() {
 		filename_app="${version_folder}/${file_prefix_name}_${mode}.app"
 		ios-deploy -I -m -b ${filename_app} | grep ${title_no_space}
 	fi
+}
+
+
+clean() {
+	rm -f ${version_settings_filename}
 }
 
 
@@ -316,6 +338,9 @@ is_resolve=true
 is_android_instant=false
 is_fast_debug=false
 mode="debug"
+settings_params=""
+build_params=""
+build_server=${build_server:-"https://build.defold.com"}
 
 for (( i=0; i<${#arg}; i++ )); do
 	a=${arg:$i:1}
@@ -356,9 +381,10 @@ do
 			is_resolve=false
 			shift
 		;;
-		--noresolve)
+		--no-resolve)
 			is_resolve=false
 			shift
+		;;
 		;;
 		*) # Unknown option
 			shift
@@ -367,7 +393,15 @@ do
 done
 
 
-### DEPLOYER RUN
+### Create additional info to settings
+echo "[project]
+version = ${version}
+commit_sha = ${commit_sha}
+build_time = ${build_time}" > ${version_settings_filename}
+settings_params="${settings_params} --settings ${version_settings_filename}"
+
+
+### Deployer run
 if $is_ios
 then
 	if $is_build; then
@@ -378,7 +412,7 @@ then
 	if $is_deploy; then
 		echo "Start deploy project to device"
 		deploy ${ios_platform} ${mode}
-		run ${ios_platform}
+		run ${ios_platform} ${mode}
 	fi
 fi
 
@@ -394,7 +428,7 @@ then
 		if $is_deploy; then
 			echo "Start deploy project to device"
 			deploy ${android_platform} ${mode}
-			run ${android_platform}
+			run ${android_platform} ${mode}
 		fi
 	else
 		# Build Android Instant APK
@@ -410,7 +444,6 @@ fi
 
 if $is_html
 then
-	echo "HTML build"
 	if $is_build; then
 		echo -e "\nStart build on \x1B[33m${html_platform}\x1B[0m"
 		build ${html_platform} ${mode}
