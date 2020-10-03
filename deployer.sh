@@ -100,6 +100,7 @@ title=$(less game.project | grep "^title = " | cut -d "=" -f2 | sed -e 's/^[[:sp
 version=$(less game.project | grep "^version = " | cut -d "=" -f2 | sed -e 's/^[[:space:]]*//')
 version=${version:='0.0.0'}
 title_no_space=$(echo -e "${title}" | tr -d '[[:space:]]')
+title_no_space=$(echo -e "${title_no_space}" | tr -d '[\-]')
 bundle_id=$(less game.project | grep "^package = " | cut -d "=" -f2 | sed -e 's/^[[:space:]]*//')
 
 ### Override last version number with commits count
@@ -122,10 +123,8 @@ if $use_latest_bob; then
 	INFO=$(curl -s http://d.defold.com/${bob_channel}/info.json)
 	echo "Latest bob: ${INFO}"
 	bob_sha=$(sed 's/.*sha1": "\(.*\)".*/\1/' <<< $INFO)
-	echo ${bob_sha}
 	bob_version=$(sed 's/[^0-9.]*\([0-9.]*\).*/\1/' <<< $INFO)
 	bob_version="$(cut -d "." -f3 <<< "$bob_version")"
-	echo ${bob_version}
 fi
 
 echo -e "Using Bob version \x1B[35m${bob_version}\x1B[0m SHA: \x1B[35m${bob_sha}\x1B[0m"
