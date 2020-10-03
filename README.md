@@ -11,7 +11,7 @@ Unique build && deploy script for *Defold* projects (Android, iOS, HTML5, Linux,
 - Save your time on preparing debug && release builds
 - Nice naming builds to save history of product versions
 - Auto *bob.jar* downloading. Flag **use_latest_bob** for using always last version of *Defold*
-- Select Bob chanell (stable/beta) and Defold build server via settings file
+- Select Bob channel (stable/beta) and Defold build server via settings file
 - Use incremental value for last number in version (enable via _enable incremental version_)
 - Headless build && run for your unit-tests on CI
 - Add additional info to *game.project*: *commit SHA* and *build time*
