@@ -168,26 +168,24 @@ bob() {
 		args+=" -tc true build bundle distclean"
 	fi
 
+	if [ ${mode} == "headless" ]; then
+		echo "Build with distclean and without compression. Headless mode"
+		args+=" build bundle distclean"
+	fi
+
 	echo -e "\nBuild command: java ${args}"
 	java ${args}
+
+	echo ""
 }
 
 
 build() {
-	if [ ! -d ${dist_folder} ]; then
-		mkdir ${dist_folder}
-	fi
-	if [ ! -d ${bundle_folder} ]; then
-		mkdir ${bundle_folder}
-	fi
-	if [ ! -d ${version_folder} ]; then
-		mkdir ${version_folder}
-	fi
+	mkdir -p ${version_folder}
+
 	platform=$1
 	mode=$2
-	additional_params=$3
-
-	build_server=${build_server:-"https://build.defold.com"}
+	additional_params="${build_params} ${settings_params} $3"
 
 	if [ ${mode} == "release" ]; then
 		ident=${ios_identity_dist}
@@ -202,6 +200,13 @@ build() {
 		android_keystore=${android_keystore_dev}
 		android_keystore_password=${android_keystore_password_dev}
 		echo -e "\x1B[31mBuild in Debug mode\x1B[0m"
+	fi
+	if [ ${mode} == "headless" ]; then
+		ident=${ios_identity_dev}
+		prov=${ios_prov_dev}
+		android_keystore=${android_keystore_dev}
+		android_keystore_password=${android_keystore_password_dev}
+		echo -e "\x1B[34mBuild in Headless mode\x1B[0m"
 	fi
 
 	if $is_resolve; then
@@ -460,6 +465,19 @@ do
 			is_resolve=false
 			shift
 		;;
+		--settings)
+			settings_params="${settings_params} --settings $2"
+			shift
+			shift
+		;;
+		--param)
+			build_params="${build_params} $2"
+			shift
+			shift
+		;;
+		--unit-test)
+			mode="headless"
+			shift
 		;;
 		*) # Unknown option
 			shift
