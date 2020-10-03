@@ -13,6 +13,9 @@
 ## 	a - add target platform Android
 ## 	i - add target platform iOS
 ## 	h - add target platform HTML5
+## 	w - add target platform Windows
+## 	l - add target platform Linux
+## 	m - add target platform MacOS
 ## 	r - set build mode to Release
 ## 	b - build project (game bundle will be in ./dist folder)
 ## 	d - deploy bundle to connected device
@@ -77,6 +80,9 @@ build_time=`date -u +"%Y-%m-%dT%H:%M:%SZ"`
 android_platform="armv7-android"
 ios_platform="armv7-darwin"
 html_platform="js-web"
+linux_platform="x86_64-linux"
+windows_platform="x86_64-win32"
+macos_platform="x86_64-darwin"
 version_settings_filename="deployer_version_settings.txt"
 dist_folder="./dist"
 bundle_folder="${dist_folder}/bundle"
@@ -256,6 +262,42 @@ build() {
 		zip "${version_folder}/${filename}_html.zip" -r "${version_folder}/${filename}_html"
 	fi
 
+	# Linux platform
+	if [ ${platform} == ${linux_platform} ]; then
+		line="${dist_folder}/${title}"
+
+		echo "Start build Linux ${mode}"
+		bob ${mode} -brhtml ${version_folder}/${filename}_linux_report.html \
+			--platform ${platform} ${additional_params}
+
+		rm -rf "${version_folder}/${filename}_linux"
+		mv "${line}" "${version_folder}/${filename}_linux" || is_build_success=false
+	fi
+
+	# MacOS platform
+	if [ ${platform} == ${macos_platform} ]; then
+		line="${dist_folder}/${title}.app"
+
+		echo "Start build MacOS ${mode}"
+		bob ${mode} -brhtml ${version_folder}/${filename}_linux_report.html \
+			--platform ${platform} ${additional_params}
+
+		rm -rf "${version_folder}/${filename}_macos.app"
+		mv "${line}" "${version_folder}/${filename}_macos.app" || is_build_success=false
+	fi
+
+	# Windows platform
+	if [ ${platform} == ${windows_platform} ]; then
+		line="${dist_folder}/${title}"
+
+		echo "Start build Windows ${mode}"
+		bob ${mode} -brhtml ${version_folder}/${filename}_linux_report.html \
+			--platform ${platform} ${additional_params}
+
+		rm -rf "${version_folder}/${filename}_windows"
+		mv "${line}" "${version_folder}/${filename}_windows" || is_build_success=false
+	fi
+
 	if $is_build_success; then
 		echo -e "\x1B[32mSave bundle at ${version_folder}/${filename}\x1B[0m"
 	else
@@ -319,6 +361,27 @@ run() {
 		filename_app="${version_folder}/${file_prefix_name}_${mode}.app"
 		ios-deploy -I -m -b ${filename_app} | grep ${title_no_space}
 	fi
+
+	if [ ${platform} == ${linux_platform} ]; then
+		filename="${version_folder}/${file_prefix_name}_${mode}_linux/${title_no_space}.x86_64"
+
+		echo "Start Linux build: $filename"
+		./$filename
+	fi
+
+	if [ ${platform} == ${macos_platform} ]; then
+		filename="${version_folder}/${file_prefix_name}_${mode}_macos.app"
+
+		echo "Start MacOS build: $filename"
+		open $filename
+	fi
+
+	if [ ${platform} == ${windows_platform} ]; then
+		filename="${version_folder}/${file_prefix_name}_${mode}_windows/${title_no_space}.exe"
+
+		echo "Start Windows build: $filename"
+		./$filename
+	fi
 }
 
 
@@ -334,6 +397,9 @@ is_deploy=false
 is_android=false
 is_ios=false
 is_html=false
+is_linux=false
+is_macos=false
+is_windows=false
 is_resolve=true
 is_android_instant=false
 is_fast_debug=false
@@ -361,6 +427,15 @@ for (( i=0; i<${#arg}; i++ )); do
 	fi
 	if [ $a == "h" ]; then
 		is_html=true
+	fi
+	if [ $a == "l" ]; then
+		is_linux=true
+	fi
+	if [ $a == "w" ]; then
+		is_windows=true
+	fi
+	if [ $a == "m" ]; then
+		is_macos=true
 	fi
 done
 
@@ -454,4 +529,40 @@ then
 	fi
 fi
 
-echo "End of deployer build"
+if $is_linux
+then
+	if $is_build; then
+		echo -e "\nStart build on \x1B[33m${linux_platform}\x1B[0m"
+		build ${linux_platform} ${mode}
+	fi
+
+	if $is_deploy; then
+		run ${linux_platform} ${mode}
+	fi
+fi
+
+if $is_macos
+then
+	if $is_build; then
+		echo -e "\nStart build on \x1B[33m${macos_platform}\x1B[0m"
+		build ${macos_platform} ${mode}
+	fi
+
+	if $is_deploy; then
+		run ${macos_platform} ${mode}
+	fi
+fi
+
+if $is_windows
+then
+	if $is_build; then
+		echo -e "\nStart build on \x1B[33m${windows_platform}\x1B[0m"
+		build ${windows_platform} ${mode}
+	fi
+
+	if $is_deploy; then
+		run ${windows_platform} ${mode}
+	fi
+fi
+
+echo -e "\nDeployer end"
