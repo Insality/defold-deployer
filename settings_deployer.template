@@ -1,20 +1,11 @@
 # Path to bob folder. It will find and save new bob.jar files inside
 bob_folder={path_to_bob_folder}
 
-# Path to android signature key for debug
-android_key_dev={path_to_key.pk8}
-
-# Path to android signature certificate for debug
-android_cer_dev={path_to_certificate.pem}
-
-# Path to android signature key for release
-android_key_dist={path_to_key.pk8}
-
-# Path to android signature certificate for release
-android_cer_dist={path_to_certificate.pem}
-
 # Path to android keystore for debug
 android_keystore_dev={path_to_keystore.jks}
+
+# Path to android keystore for release
+android_keystore_dist={path_to_keystore.jks}
 
 # Path to android keystore password for debug. This file should contains keystore password
 android_keystore_password_dev="{path_to_keystore_password.txt}"
@@ -43,8 +34,12 @@ bob_channel="stable"
 # If true, it will check and download latest bob version. It will ignore bob_sha param
 use_latest_bob=false
 
-# Set patch game version value as total git commits count
-set_commits_to_version=false
+# Select Defold build server
+build_server="https://build.defold.com"
+
+# Set patch game version value as total git commits count (1.2.0 -> 1.2.{commits_count})
+# You allow to get SHA commit from version via: git rev-list --all --reverse | sed -n {N}p
+enable_incremental_version=false
 
 # If true, add `-l yes` build param for publish live content
 is_live_content=false
@@ -60,5 +55,8 @@ android_instant_app_settings={path_to_android_settings_ini}
 # SDK path to build Android Instant app
 sdk_path={path_to_android_sdk}
 
-# Select Defold build server
-build_server="https://build.defold.com"
+# Path to android signature key for release (Since Defold 174 only using for Android Instant games)
+android_key_dist={path_to_key.pk8}
+
+# Path to android signature certificate for release (Since Defold 174 only using for Android Instant games)
+android_cer_dist={path_to_certificate.pem}

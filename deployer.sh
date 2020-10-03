@@ -2,14 +2,15 @@
 ### Author: Insality <insality@gmail.com>, 04.2019
 ## (c) Insality Games
 ##
-## Unique build && deploy script for mobile projects (Android, iOS, HTML5)
-## for Defold Engine.
+## Unique build && deploy script for Defold projects (Android, iOS, HTML5, Linux, MacOS, Windows)
+## Deployer has own settings, described in separate file settings_deployer
+## See full deployer settings here: https://github.com/Insality/defold-deployer/blob/master/settings_deployer.template
 ##
 ## Install:
 ## See full instructions here: https://github.com/Insality/defold-deployer/blob/master/README.md
 ##
 ## Usage:
-## bash deployer.sh [a][i][h][r][b][d] [--instant] [--fast] [--no-resolve]
+## bash deployer.sh [a][i][h][w][l][m][r][b][d] [--fast] [--no-resolve] [--instant] [--settings {filename}] [--headless] [--param {x}]
 ## 	a - add target platform Android
 ## 	i - add target platform iOS
 ## 	h - add target platform HTML5
@@ -20,21 +21,27 @@
 ## 	b - build project (game bundle will be in ./dist folder)
 ## 	d - deploy bundle to connected device
 ## 		it will deploy && run bundle on Android/iOS with reading logs to terminal
-## 	--instant - it preparing bundle for Android Instant Apps (always in release mode)
 ## 	--fast - build without resolve and only one Android platform (for faster builds)
 ## 	--no-resolve - build without dependency resolve
 ## 	--headless - set mode to headless. Override release mode
-## 	--settings - add settings file to build params. Can be used several times
+## 	--settings {filename} - add settings file to build params. Can be used several times
 ## 	--param {x} - add flag {x} to bob.jar. Can be used several times
+## 	--instant - it preparing bundle for Android Instant Apps. Always in release mode
 ##
 ## 	Example:
 ##		./deployer.sh abd - build, deploy and run Android bundle
 ## 	./deployer.sh ibdr - build, deploy and run iOS release bundle
 ## 	./deployer.sh aibr - build Android and iOS release bundles
+## 	./deployer.sh mbd - build MacOS debug build and run it
+## 	./deployer.sh lbd --settings unit_test.txt --headless Build linux headless build with unit_test.txt settings and run it
+## 	./deployer.sh wbr - build Windows release build
+## 	./deployer.sh ab --instant - build Android release build for Android Instant Apps
 ##
 ## 	You can pass params in any order you want, for example:
 ## 	./deployer.sh riba - same behaviour as aibr
 ##
+## MIT License
+###
 
 ### Exit on Cmd+C / Ctrl+C
 trap "exit" INT
@@ -96,7 +103,7 @@ title_no_space=$(echo -e "${title}" | tr -d '[[:space:]]')
 bundle_id=$(less game.project | grep "^package = " | cut -d "=" -f2 | sed -e 's/^[[:space:]]*//')
 
 ### Override last version number with commits count
-if $set_commits_to_version; then
+if $enable_incremental_version; then
 	commits_count=`git rev-list --all --count`
 	version="${version%.*}.$commits_count"
 fi
@@ -475,7 +482,7 @@ do
 			shift
 			shift
 		;;
-		--unit-test)
+		--headless)
 			mode="headless"
 			shift
 		;;

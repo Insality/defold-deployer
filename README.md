@@ -1,15 +1,20 @@
-
 ![](defold-deployer.png)
 # Defold Deployer
-Unique build && deploy script for mobile projects (Android, iOS, HTML5), Defold Engine
+Unique build && deploy script for *Defold* projects (Android, iOS, HTML5, Linux, MacOS, Windows)
+**Deployer** is configurable via settings_deployer file. It's allow use single deployer script for different projects
 
 ## Features
-- Single deployment script on all Defold mobile projects (Android, iOS, HTML5)
+- Single deployment script on all Defold projects (Android, iOS, HTML5, Linux, MacOS, Windows)
 - One command to build, deploy and read logs from the mobile
 - Global and custom settings on project (provisions, bob version, etc)
+- Useful build output
 - Save your time on preparing debug && release builds
 - Nice naming builds to save history of product versions
-- Auto *bob.jar* downloading. Flag **use_latest_bob** for using always last version of Defold
+- Auto *bob.jar* downloading. Flag **use_latest_bob** for using always last version of *Defold*
+- Select Bob chanell (stable/beta) and Defold build server via settings file
+- Use incremental value for last number in version (enable via _enable incremental version_)
+- Headless build && run for your unit-tests on CI
+- Add additional info to *game.project*: *commit SHA* and *build time*
 - Android Instant build in one command (`deployer abr --instant`)
 - Redownload dependencies, if they are corrupted
 
@@ -55,16 +60,22 @@ Call it in your project folder like: `deployer abd`
 
 
 ## Usage
-`bash deployer.sh [a][i][h][r][b][d] [--instant] [--fast] [--noresolve]`
+`bash deployer.sh [a][i][h][w][l][m][r][b][d] [--fast] [--no-resolve] [--instant] [--settings {filename}] [--headless] [--param {x}]`
 - `a` - add target platform Android
 - `i` - add target platform iOS
 - `h` - add target platform HTML5
+- `w` - add target platform Windows
+- `l`- add target platform Linux
+- `m` - add target platform MacOS
 - `r` - set build mode to Release
 - `b` - build project (game bundle will be in ./dist/bundle/ folder)
 - `d` - deploy bundle && run to connected device. Auto start logging from connected device
-- `--instant` - make builder mode to Android Instant. It will always build in _Release_ mode
+- `--settings` {filename} - add settings file to build params. Can be used several times
+- `--param {x}` - add flag {x} to bob.jar. Can be used several times
 - `--fast` - build without resolve and only one Android platform (for faster builds)
-- `--noresolve` - build without dependency resolve
+- `--headless` - set mode to headless. Override release mode
+- `--no-resolve` - build without dependency resolve
+- `--instant` - it preparing bundle for Android Instant Apps. Always in release mode
 
 Bundle files will be located at *./dist/bundle/{Version}/*
 
@@ -91,6 +102,12 @@ deployer.sh abd --fast
 # You can pass params in any order you want, for example:
 # Same behaviour as aibr
 deployer.sh riba
+# Build MacOS debug build and run it
+deployer.sh mbd
+# Build linux headless build with unit_test.txt settings and run it
+deployer.sh lbd --settings unit_test.txt --headless 
+# Build Windows release build
+deployer.sh wbr
 ```
 
 ## Deployer parameters
@@ -104,17 +121,17 @@ Deployer parameters:
 # Path to bob folder. It will find and save new bob.jar files inside
 bob_folder={path_to_bob_folder}
 
-# Path to android signature key for debug
-android_key_dev={path_to_key.pk8}
+# Path to android keystore for debug
+android_keystore_dev={path_to_keystore.jks}
 
-# Path to android signature certificate for debug
-android_cer_dev={path_to_certificate.pem}
+# Path to android keystore for release
+android_keystore_dist={path_to_keystore.jks}
 
-# Path to android signature key for release
-android_key_dist={path_to_key.pk8}
+# Path to android keystore password for debug. This file should contains keystore password
+android_keystore_password_dev="{path_to_keystore_password.txt}"
 
-# Path to android signature certificate for release
-android_cer_dist={path_to_certificate.pem}
+# Path to android keystore password for release. This file should contains keystore password
+android_keystore_password_dist="{path_to_keystore_password.txt}"
 
 # ID of your ios development identity
 ios_identity_dev="AAXBBYY"
@@ -128,11 +145,21 @@ ios_prov_dev={path_to_ios_dev.mobileprovision}
 # Path to ios distribution mobileprovision
 ios_prov_dist={path_to_ios_dist.mobileprovision}
 
-# You can point bob version for project in format "version:sha"
-bob_sha="161:45635ad26f85009c52905724e242cc92dd252146"
+# You can point bob version for project in format "filename:sha"
+bob_sha="173:fe2b689302e79b7cf8c0bc7d934f23587b268c8a"
+
+# Select Defold channel. Values: stable, beta
+bob_channel="stable"
 
 # If true, it will check and download latest bob version. It will ignore bob_sha param
 use_latest_bob=false
+
+# Select Defold build server
+build_server="https://build.defold.com"
+
+# Set patch game version value as total git commits count (1.2.0 -> 1.2.{commits_count})
+# You allow to get SHA commit from version via: git rev-list --all --reverse | sed -n {N}p
+enable_incremental_version=false
 
 # If true, add `-l yes` build param for publish live content
 is_live_content=false
@@ -147,9 +174,20 @@ android_instant_app_settings={path_to_android_settings_ini}
 
 # SDK path to build Android Instant app
 sdk_path={path_to_android_sdk}
+
+# Path to android signature key for release (Since Defold 174 only using for Android Instant games)
+android_key_dist={path_to_key.pk8}
+
+# Path to android signature certificate for release (Since Defold 174 only using for Android Instant games)
+android_cer_dist={path_to_certificate.pem}
 ```
 
 ## Author
 Maxim Tuprikov, [Insality](http://github.com/Insality)
-MIT License
+**MIT** License
+
+
+## Issues and suggestions
+
+If you have any issues, questions or suggestions please  [create an issue](https://github.com/Insality/druid/issues)  or contact me:  [insality@gmail.com](mailto:insality@gmail.com)
 
