@@ -134,11 +134,21 @@ fi
 echo -e "Using Bob version \x1B[35m${bob_version}\x1B[0m SHA: \x1B[35m${bob_sha}\x1B[0m"
 
 bob_path="${bob_folder}bob${bob_version}.jar"
-if [ ! -f ${bob_path} ]; then
-	BOB_URL="https://d.defold.com/archive/${bob_channel}/${bob_sha}/bob/bob.jar"
-	echo "Unable to find bob${bob_version}.jar. Downloading it from d.defold.com: ${BOB_URL}}"
-	echo "curl -L -o ${bob_path} ${BOB_URL}"
-	curl -L -o ${bob_path} ${BOB_URL}
+download_bob() {
+	if [ ! -f ${bob_path} ]; then
+		BOB_URL="https://d.defold.com/archive/${bob_channel}/${bob_sha}/bob/bob.jar"
+		echo "Unable to find bob${bob_version}.jar. Downloading it from d.defold.com: ${BOB_URL}}"
+		echo "curl -L -o ${bob_path} ${BOB_URL}"
+		curl -L -o ${bob_path} ${BOB_URL}
+	fi
+}
+download_bob
+
+real_bob_sha=$(java -jar ${bob_path} --version | cut -d ":" -f3 | cut -d " " -f2)
+if [ ! ${real_bob_sha} == ${bob_sha} ]; then
+	echo "Bob SHA mismatch (file bob SHA and settings bob SHA). Redownloading..."
+	rm ${bob_path}
+	download_bob
 fi
 
 
