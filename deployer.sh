@@ -83,6 +83,7 @@ fi
 
 ### Constants
 commit_sha=`git rev-parse --verify HEAD`
+commits_count=`git rev-list --all --count`
 build_time=`date -u +"%Y-%m-%dT%H:%M:%SZ"`
 android_platform="armv7-android"
 ios_platform="armv7-darwin"
@@ -105,7 +106,6 @@ bundle_id=$(less game.project | grep "^package = " | cut -d "=" -f2 | sed -e 's/
 
 ### Override last version number with commits count
 if $enable_incremental_version; then
-	commits_count=`git rev-list --all --count`
 	version="${version%.*}.$commits_count"
 fi
 
@@ -290,7 +290,7 @@ build() {
 		line="${dist_folder}/${title}.app"
 
 		echo "Start build MacOS ${mode}"
-		bob ${mode} -brhtml ${version_folder}/${filename}_linux_report.html \
+		bob ${mode} -brhtml ${version_folder}/${filename}_macos_report.html \
 			--platform ${platform} ${additional_params}
 
 		rm -rf "${version_folder}/${filename}_macos.app"
@@ -302,7 +302,7 @@ build() {
 		line="${dist_folder}/${title}"
 
 		echo "Start build Windows ${mode}"
-		bob ${mode} -brhtml ${version_folder}/${filename}_linux_report.html \
+		bob ${mode} -brhtml ${version_folder}/${filename}_windows_report.html \
 			--platform ${platform} ${additional_params}
 
 		rm -rf "${version_folder}/${filename}_windows"
