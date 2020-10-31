@@ -45,7 +45,7 @@
 
 ### Exit on Cmd+C / Ctrl+C
 trap "exit" INT
-trap clean_build_settings EXIT
+trap clean EXIT
 set -e
 
 if [ ! -f ./game.project ]; then
@@ -95,6 +95,10 @@ version_settings_filename="deployer_version_settings.txt"
 dist_folder="./dist"
 bundle_folder="${dist_folder}/bundle"
 
+
+### Runtime
+is_build_success=false
+is_build_started=false
 
 ### Game project settings for deployer script
 title=$(less game.project | grep "^title = " | cut -d "=" -f2 | sed -e 's/^[[:space:]]*//')
@@ -192,6 +196,8 @@ build() {
 	platform=$1
 	mode=$2
 	additional_params="${build_params} ${settings_params} $3"
+	is_build_success=false
+	is_build_started=true
 
 	if [ ${mode} == "release" ]; then
 		ident=${ios_identity_dist}
@@ -220,7 +226,6 @@ build() {
 	fi
 
 	filename="${file_prefix_name}_${mode}"
-	is_build_success=true
 
 	# Android platform
 	if [ ${platform} == ${android_platform} ]; then
@@ -242,7 +247,7 @@ build() {
 			--keystore-pass ${android_keystore_password} --build-server ${build_server} \
 			${additional_params}
 
-		mv "${line}.apk" "${version_folder}/${filename}.apk" || is_build_success=false
+		mv "${line}.apk" "${version_folder}/${filename}.apk" && is_build_success=true
 	fi
 
 	# iOS platform
@@ -256,7 +261,7 @@ build() {
 
 		rm -rf "${version_folder}/${filename}.app"
 		mv "${line}.app" "${version_folder}/${filename}.app"
-		mv "${line}.ipa" "${version_folder}/${filename}.ipa" || is_build_success=false
+		mv "${line}.ipa" "${version_folder}/${filename}.ipa" && is_build_success=true
 	fi
 
 	# HTML5 platform
@@ -282,7 +287,7 @@ build() {
 			--platform ${platform} ${additional_params}
 
 		rm -rf "${version_folder}/${filename}_linux"
-		mv "${line}" "${version_folder}/${filename}_linux" || is_build_success=false
+		mv "${line}" "${version_folder}/${filename}_linux" && is_build_success=true
 	fi
 
 	# MacOS platform
@@ -294,7 +299,7 @@ build() {
 			--platform ${platform} ${additional_params}
 
 		rm -rf "${version_folder}/${filename}_macos.app"
-		mv "${line}" "${version_folder}/${filename}_macos.app" || is_build_success=false
+		mv "${line}" "${version_folder}/${filename}_macos.app" && is_build_success=true
 	fi
 
 	# Windows platform
@@ -306,7 +311,7 @@ build() {
 			--platform ${platform} ${additional_params}
 
 		rm -rf "${version_folder}/${filename}_windows"
-		mv "${line}" "${version_folder}/${filename}_windows" || is_build_success=false
+		mv "${line}" "${version_folder}/${filename}_windows" && is_build_success=true
 	fi
 
 	if $is_build_success; then
@@ -400,6 +405,21 @@ run() {
 
 clean_build_settings() {
 	rm -f ${version_settings_filename}
+}
+
+
+clean() {
+	clean_build_settings
+
+	if $is_build_started; then
+		if $is_build_success; then
+			echo -e "\x1B[32m[SUCCESS]: Build succesfully created\x1B[0m"
+		else
+			echo -e "\x1B[31m[ERROR]: Build finished with errors\x1B[0m"
+		fi
+	else
+		echo -e "Deployer end"
+	fi
 }
 
 
@@ -589,5 +609,3 @@ then
 		run ${windows_platform} ${mode}
 	fi
 fi
-
-echo -e "\nDeployer end"
