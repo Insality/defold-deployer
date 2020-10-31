@@ -63,7 +63,7 @@ Call it in your project folder like: `deployer abd`
 
 
 ## Usage
-`bash deployer.sh [a][i][h][w][l][m][r][b][d] [--fast] [--no-resolve] [--instant] [--settings {filename}] [--headless]`
+`bash deployer.sh [a][i][h][w][l][m][r][b][d] [--fast] [--resolve] [--instant] [--settings {filename}] [--headless]`
 - `a` - add target platform Android
 - `i` - add target platform iOS
 - `h` - add target platform HTML5
@@ -74,9 +74,9 @@ Call it in your project folder like: `deployer abd`
 - `b` - build project (game bundle will be in ./dist/bundle/ folder)
 - `d` - deploy bundle && run to connected device. Auto start logging from connected device
 - `--settings {filename}` - add settings file to build params. Can be used several times
-- `--fast` - build without resolve and only one Android platform (for faster builds)
+- `--fast` - build only one Android platform (for faster builds)
 - `--headless` - set mode to headless. Override release mode
-- `--no-resolve` - build without dependency resolve
+- `--resolve` - build without dependency resolve
 - `--instant` - it preparing bundle for Android Instant Apps. Always in release mode
 
 Bundle files will be located at *./dist/bundle/{Version}/*

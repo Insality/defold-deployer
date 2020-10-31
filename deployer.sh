@@ -10,7 +10,7 @@
 ## See full instructions here: https://github.com/Insality/defold-deployer/blob/master/README.md
 ##
 ## Usage:
-## bash deployer.sh [a][i][h][w][l][m][r][b][d] [--fast] [--no-resolve] [--instant] [--settings {filename}] [--headless] [--param {x}]
+## bash deployer.sh [a][i][h][w][l][m][r][b][d] [--fast] [--resolve] [--instant] [--settings {filename}] [--headless] [--param {x}]
 ## 	a - add target platform Android
 ## 	i - add target platform iOS
 ## 	h - add target platform HTML5
@@ -21,8 +21,8 @@
 ## 	b - build project (game bundle will be in ./dist folder)
 ## 	d - deploy bundle to connected device
 ## 		it will deploy && run bundle on Android/iOS with reading logs to terminal
-## 	--fast - build without resolve and only one Android platform (for faster builds)
-## 	--no-resolve - build without dependency resolve
+## 	--fast - only one Android platform (for faster builds)
+## 	--resolve - build with dependency resolve
 ## 	--headless - set mode to headless. Override release mode
 ## 	--settings {filename} - add settings file to build params. Can be used several times
 ## 	--param {x} - add flag {x} to bob.jar. Can be used several times
@@ -45,7 +45,7 @@
 
 ### Exit on Cmd+C / Ctrl+C
 trap "exit" INT
-trap clean EXIT
+trap clean_build_settings EXIT
 set -e
 
 if [ ! -f ./game.project ]; then
@@ -335,6 +335,7 @@ make_instant() {
 deploy() {
 	platform=$1
 	mode=$2
+	clean_build_settings
 
 	if [ ${platform} == ${android_platform} ]; then
 		filename="${version_folder}/${file_prefix_name}_${mode}.apk"
@@ -362,6 +363,7 @@ deploy() {
 run() {
 	platform=$1
 	mode=$2
+	clean_build_settings
 
 	if [ ${platform} == ${android_platform} ]; then
 		adb shell am start -n ${bundle_id}/com.dynamo.android.DefoldActivity
@@ -396,7 +398,7 @@ run() {
 }
 
 
-clean() {
+clean_build_settings() {
 	rm -f ${version_settings_filename}
 }
 
@@ -411,7 +413,7 @@ is_html=false
 is_linux=false
 is_macos=false
 is_windows=false
-is_resolve=true
+is_resolve=false
 is_android_instant=false
 is_fast_debug=false
 mode="debug"
@@ -464,11 +466,10 @@ do
 		;;
 		--fast)
 			is_fast_debug=true
-			is_resolve=false
 			shift
 		;;
-		--no-resolve)
-			is_resolve=false
+		--resolve)
+			is_resolve=true
 			shift
 		;;
 		--settings)
