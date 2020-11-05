@@ -76,7 +76,7 @@ Call it in your project folder like: `deployer abd`
 - `--settings {filename}` - add settings file to build params. Can be used several times
 - `--fast` - build only one Android platform (for faster builds)
 - `--headless` - set mode to headless. Override release mode
-- `--resolve` - build without dependency resolve
+- `--resolve` - build with dependency resolve
 - `--instant` - it preparing bundle for Android Instant Apps. Always in release mode
 
 Bundle files will be located at *./dist/bundle/{Version}/*
