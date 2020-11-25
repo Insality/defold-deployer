@@ -13,6 +13,12 @@ android_keystore_password_dev="{path_to_keystore_password.txt}"
 # Path to android keystore password for release. This file should contains keystore password
 android_keystore_password_dist="{path_to_keystore_password.txt}"
 
+# Name of alias from provided keystore to use for android development build
+android_keystore_alias_dev="keystore_alias"
+
+# Name of alias from provided keystore to use for android release build
+android_keystore_alias_dist="keystore_alias"
+
 # ID of your ios development identity
 ios_identity_dev="AAXBBYY"
 

@@ -214,6 +214,7 @@ build() {
 		prov=${ios_prov_dist}
 		android_keystore=${android_keystore_dist}
 		android_keystore_password=${android_keystore_password_dist}
+		android_keystore_alias=${android_keystore_alias_dist}
 		echo -e "\x1B[32mBuild in Release mode\x1B[0m"
 	fi
 	if [ ${mode} == "debug" ]; then
@@ -221,6 +222,7 @@ build() {
 		prov=${ios_prov_dev}
 		android_keystore=${android_keystore_dev}
 		android_keystore_password=${android_keystore_password_dev}
+		android_keystore_alias=${android_keystore_alias_dev}
 		echo -e "\x1B[31mBuild in Debug mode\x1B[0m"
 	fi
 	if [ ${mode} == "headless" ]; then
@@ -228,6 +230,7 @@ build() {
 		prov=${ios_prov_dev}
 		android_keystore=${android_keystore_dev}
 		android_keystore_password=${android_keystore_password_dev}
+		android_keystore_alias=${android_keystore_alias_dev}
 		echo -e "\x1B[34mBuild in Headless mode\x1B[0m"
 	fi
 
@@ -254,8 +257,8 @@ build() {
 		echo "Start build android ${mode}"
 		bob ${mode} -brhtml ${version_folder}/${filename}_android_report.html \
 			--platform ${platform} --keystore ${android_keystore} \
-			--keystore-pass ${android_keystore_password} --build-server ${build_server} \
-			${additional_params}
+			--keystore-pass ${android_keystore_password} --keystore-alias ${android_keystore_alias} \
+			--build-server ${build_server} ${additional_params}
 
 		mv "${line}.apk" "${version_folder}/${filename}.apk" && is_build_success=true
 	fi
@@ -285,7 +288,7 @@ build() {
 		rm -rf "${version_folder}/${filename}_html"
 		rm -f "${version_folder}/${filename}_html.zip"
 		mv "${line}" "${version_folder}/${filename}_html"
-		zip "${version_folder}/${filename}_html.zip" -r "${version_folder}/${filename}_html"
+		zip "${version_folder}/${filename}_html.zip" -r "${version_folder}/${filename}_html" && is_build_success=true
 	fi
 
 	# Linux platform
