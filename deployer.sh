@@ -358,7 +358,7 @@ deploy() {
 	if [ ${platform} == ${android_platform} ]; then
 		filename="${version_folder}/${file_prefix_name}_${mode}.apk"
 		echo "Deploy to Android from ${filename}"
-		adb install -r "${filename}"
+		adb install -r -d "${filename}"
 	fi
 
 	if [ ${platform} == ${ios_platform} ]; then
