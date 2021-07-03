@@ -3,7 +3,7 @@
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/insality/defold-deployer?style=for-the-badge)](https://github.com/Insality/defold-deployer/releases)
 
 # Defold Deployer
-Unique build && deploy script for *Defold* projects (Android, iOS, HTML5, Linux, MacOS, Windows)
+Universal build && deploy script for *Defold* projects (Android, iOS, HTML5, Linux, MacOS, Windows)
 **Deployer** is configurable via settings_deployer file. It's allow use single deployer script for different projects
 
 ## Features

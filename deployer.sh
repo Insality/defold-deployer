@@ -2,7 +2,7 @@
 ### Author: Insality <insality@gmail.com>, 04.2019
 ## (c) Insality Games
 ##
-## Unique build && deploy script for Defold projects (Android, iOS, HTML5, Linux, MacOS, Windows)
+## Universal build && deploy script for Defold projects (Android, iOS, HTML5, Linux, MacOS, Windows)
 ## Deployer has own settings, described in separate file settings_deployer
 ## See full deployer settings here: https://github.com/Insality/defold-deployer/blob/master/settings_deployer.template
 ##
