@@ -29,7 +29,7 @@
 ## 	--instant - it preparing bundle for Android Instant Apps. Always in release mode
 ##
 ## 	Example:
-##		./deployer.sh abd - build, deploy and run Android bundle
+## 	./deployer.sh abd - build, deploy and run Android bundle
 ## 	./deployer.sh ibdr - build, deploy and run iOS release bundle
 ## 	./deployer.sh aibr - build Android and iOS release bundles
 ## 	./deployer.sh mbd - build MacOS debug build and run it
