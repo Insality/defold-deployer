@@ -15,9 +15,10 @@ Universal build && deploy script for *Defold* projects (Android, iOS, HTML5, Lin
 - Nice naming builds to save history of product versions
 - Auto *bob.jar* downloading. Flag **use_latest_bob** for using always last version of *Defold*
 - Select Bob channel (stable/beta/alpha) and Defold build server via settings file
-- Use incremental value for last number in version (enable via _enable incremental version_)
-- Headless build && run for your unit-tests on CI
-- Add additional info to *game.project*: *project.commit_sha*  and *project.build time*
+- Use incremental value for last number in version and android.version_code (enable via _enable incremental version_, _enable_incremental_android_version_code_)
+- Headless build && run for your unit-tests on CI _[here example](https://github.com/Insality/druid/blob/develop/.github/workflows/ci-workflow.yml#L20)_
+- Add additional info to *game.project*: *project.commit_sha* and *project.build time*
+- Can use pre and post build hooks
 - Android Instant build in one command (`deployer abr --instant`)
 - Redownload dependencies, if they are corrupted
 
@@ -135,6 +136,12 @@ android_keystore_password_dev="{path_to_keystore_password.txt}"
 # Path to android keystore password for release. This file should contains keystore password
 android_keystore_password_dist="{path_to_keystore_password.txt}"
 
+# Name of alias from provided keystore to use for android development build
+android_keystore_alias_dev="keystore_alias"
+
+# Name of alias from provided keystore to use for android release build
+android_keystore_alias_dist="keystore_alias"
+
 # ID of your ios development identity
 ios_identity_dev="AAXBBYY"
 
@@ -148,9 +155,9 @@ ios_prov_dev={path_to_ios_dev.mobileprovision}
 ios_prov_dist={path_to_ios_dist.mobileprovision}
 
 # You can point bob version for project in format "filename:sha"
-bob_sha="173:fe2b689302e79b7cf8c0bc7d934f23587b268c8a"
+bob_sha="184:1f5712609c345f870b691a85d611d4825d22a718"
 
-# Select Defold channel. Values: stable, beta
+# Select Defold channel. Values: stable, beta, alpha
 bob_channel="stable"
 
 # If true, it will check and download latest bob version. It will ignore bob_sha param
@@ -159,15 +166,27 @@ use_latest_bob=false
 # Select Defold build server
 build_server="https://build.defold.com"
 
-# Set patch game version value as total git commits count (1.2.0 -> 1.2.{commits_count})
+# Pre-build hook bash script path. The path relative from game project folder
+pre_build_script=false
+
+# Post-build hook bash script path. The path relative from game project folder
+post_build_script=false
+
+# Set patch (last value after dot) game version value as total git commits count (1.2.0 -> 1.2.{commits_count})
 # You allow to get SHA commit from version via: git rev-list --all --reverse | sed -n {N}p
 enable_incremental_version=false
+
+# Use git commits count as android.version_code on build
+enable_incremental_android_version_code=false
 
 # If true, add `-l yes` build param for publish live content
 is_live_content=false
 
 # Set to true, if you do not need to strip executables
 no_strip_executable=false
+
+# Is need to build html report
+is_build_html_report=false
 
 # Android instant app settings.ini path to override
 # (Usually, you need it to override AndroidManifest.xml)

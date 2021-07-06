@@ -43,6 +43,12 @@ use_latest_bob=false
 # Select Defold build server
 build_server="https://build.defold.com"
 
+# Pre-build hook bash script path. The path relative from game project folder
+pre_build_script=false
+
+# Post-build hook bash script path. The path relative from game project folder
+post_build_script=false
+
 # Set patch (last value after dot) game version value as total git commits count (1.2.0 -> 1.2.{commits_count})
 # You allow to get SHA commit from version via: git rev-list --all --reverse | sed -n {N}p
 enable_incremental_version=false
@@ -56,7 +62,7 @@ is_live_content=false
 # Set to true, if you do not need to strip executables
 no_strip_executable=false
 
-# Is need to build build report
+# Is need to build html report
 is_build_html_report=false
 
 # Android instant app settings.ini path to override

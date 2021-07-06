@@ -56,6 +56,8 @@ fi
 ### Default variables
 use_latest_bob=false
 is_live_content=false
+pre_build_script=false
+post_build_script=false
 no_strip_executable=false
 is_build_html_report=false
 enable_incremental_version=false
@@ -214,6 +216,11 @@ bob() {
 
 
 build() {
+	if [ -f ./${pre_build_script} ]; then
+		echo "Run pre-build script: $pre_build_script"
+		source ./$pre_build_script
+	fi
+
 	mkdir -p ${version_folder}
 
 	platform=$1
@@ -362,6 +369,10 @@ build() {
 
 	if $is_build_success; then
 		echo -e "\x1B[32mSave bundle at ${version_folder}/${filename}\x1B[0m"
+		if [ -f ./${post_build_script} ]; then
+			echo "Run post-build script: $post_build_script"
+			source ./$post_build_script
+		fi
 	else
 		echo -e "\x1B[31mError during building...\x1B[0m"
 	fi
