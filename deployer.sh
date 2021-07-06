@@ -53,8 +53,15 @@ if [ ! -f ./game.project ]; then
 	exit
 fi
 
+### Default variables
+use_latest_bob=false
+is_live_content=false
+no_strip_executable=false
+is_build_html_report=false
+enable_incremental_version=false
+enable_incremental_android_version_code=false
 
-### SETTINGS LOADING
+### Settings loading
 settings_filename="settings_deployer"
 script_path="`dirname \"$0\"`"
 is_settings_exist=false
@@ -82,8 +89,6 @@ fi
 
 
 ### Constants
-commit_sha=`git rev-parse --verify HEAD`
-commits_count=`git rev-list --all --count`
 build_time=`date -u +"%Y-%m-%dT%H:%M:%SZ"`
 android_platform="armv7-android"
 ios_platform="armv7-darwin"
@@ -94,6 +99,13 @@ macos_platform="x86_64-darwin"
 version_settings_filename="deployer_version_settings.txt"
 dist_folder="./dist"
 bundle_folder="${dist_folder}/bundle"
+commit_sha="unknown"
+commits_count=0
+
+if [ -d .git ]; then
+	commit_sha=`git rev-parse --verify HEAD`
+	commits_count=`git rev-list --all --count`
+fi
 
 
 ### Runtime
@@ -115,8 +127,9 @@ fi
 
 file_prefix_name="${title_no_space}_${version}"
 version_folder="${bundle_folder}/${version}"
-echo -e "\nProject: \x1B[36m${title} v${version}\x1B[0m SHA: \x1B[35m${commit_sha}\x1B[0m"
-
+echo -e "\nProject: \x1B[36m${title} v${version}\x1B[0m"
+echo -e "Commit SHA: \x1B[35m${commit_sha}\x1B[0m"
+echo -e "Commits amount: \x1B[33m${commits_count}\x1B[0m"
 
 ### Bob select
 bob_version="$(cut -d ":" -f1 <<< "$bob_sha")"
@@ -125,7 +138,7 @@ bob_channel="${bob_channel:-"stable"}"
 
 if $use_latest_bob; then
 	INFO=$(curl -s http://d.defold.com/${bob_channel}/info.json)
-	echo "Latest bob: ${INFO}"
+	echo "Using latest bob: ${INFO}"
 	bob_sha=$(sed 's/.*sha1": "\(.*\)".*/\1/' <<< $INFO)
 	bob_version=$(sed 's/[^0-9.]*\([0-9.]*\).*/\1/' <<< $INFO)
 	bob_version="$(cut -d "." -f3 <<< "$bob_version")"
@@ -179,21 +192,21 @@ bob() {
 	fi
 
 	if [ ${mode} == "debug" ]; then
-		echo "Build without distclean and compression. Debug mode"
+		echo -e "\nBuild without distclean and compression. Debug mode"
 		args+=" build bundle"
 	fi
 
 	if [ ${mode} == "release" ]; then
-		echo "Build with distclean and compression. Release mode"
+		echo -e "\nBuild with distclean and compression. Release mode"
 		args+=" -tc true build bundle distclean"
 	fi
 
 	if [ ${mode} == "headless" ]; then
-		echo "Build with distclean and without compression. Headless mode"
+		echo -e "\nBuild with distclean and without compression. Headless mode"
 		args+=" build bundle distclean"
 	fi
 
-	echo -e "\nBuild command: java ${args}"
+	echo -e "Build command: java ${args}"
 	java ${args}
 
 	echo ""
@@ -254,10 +267,16 @@ build() {
 			additional_params=" -l yes $additional_params"
 		fi
 
-		echo "Start build android ${mode}"
-		bob ${mode} -brhtml ${version_folder}/${filename}_android_report.html \
-			--platform ${platform} --keystore ${android_keystore} \
-			--keystore-pass ${android_keystore_password} --keystore-alias ${android_keystore_alias} \
+		if [ ! -z "$android_keystore_alias" ]; then
+			additional_params=" --keystore-alias $android_keystore_alias $additional_params"
+		fi
+
+		if $is_build_html_report; then
+			additional_params=" -brhtml ${version_folder}/${filename}_android_report.html $additional_params"
+		fi
+
+		bob ${mode} --platform ${platform} --keystore ${android_keystore} \
+			--keystore-pass ${android_keystore_password} \
 			--build-server ${build_server} ${additional_params}
 
 		mv "${line}.apk" "${version_folder}/${filename}.apk" && is_build_success=true
@@ -267,9 +286,11 @@ build() {
 	if [ ${platform} == ${ios_platform} ]; then
 		line="${dist_folder}/${title}"
 
-		echo "Start build ios ${mode}"
-		bob ${mode} -brhtml ${version_folder}/${filename}_ios_report.html \
-			--platform ${platform} --identity ${ident} -mp ${prov} \
+		if $is_build_html_report; then
+			additional_params=" -brhtml ${version_folder}/${filename}_ios_report.html $additional_params"
+		fi
+
+		bob ${mode} --platform ${platform} --identity ${ident} -mp ${prov} \
 			--build-server ${build_server} ${additional_params}
 
 		rm -rf "${version_folder}/${filename}.app"
@@ -281,9 +302,12 @@ build() {
 	if [ ${platform} == ${html_platform} ]; then
 		line="${dist_folder}/${title}"
 
+		if $is_build_html_report; then
+			additional_params=" -brhtml ${version_folder}/${filename}_html_report.html $additional_params"
+		fi
+
 		echo "Start build HTML5 ${mode}"
-		bob ${mode} -brhtml ${version_folder}/${filename}_html_report.html \
-			--platform ${platform} ${additional_params}
+		bob ${mode} --platform ${platform} ${additional_params}
 
 		rm -rf "${version_folder}/${filename}_html"
 		rm -f "${version_folder}/${filename}_html.zip"
@@ -295,9 +319,12 @@ build() {
 	if [ ${platform} == ${linux_platform} ]; then
 		line="${dist_folder}/${title}"
 
+		if $is_build_html_report; then
+			additional_params=" -brhtml ${version_folder}/${filename}_linux_report.html $additional_params"
+		fi
+
 		echo "Start build Linux ${mode}"
-		bob ${mode} -brhtml ${version_folder}/${filename}_linux_report.html \
-			--platform ${platform} ${additional_params}
+		bob ${mode} --platform ${platform} ${additional_params}
 
 		rm -rf "${version_folder}/${filename}_linux"
 		mv "${line}" "${version_folder}/${filename}_linux" && is_build_success=true
@@ -307,9 +334,12 @@ build() {
 	if [ ${platform} == ${macos_platform} ]; then
 		line="${dist_folder}/${title}.app"
 
+		if $is_build_html_report; then
+			additional_params=" -brhtml ${version_folder}/${filename}_macos_report.html $additional_params"
+		fi
+
 		echo "Start build MacOS ${mode}"
-		bob ${mode} -brhtml ${version_folder}/${filename}_macos_report.html \
-			--platform ${platform} ${additional_params}
+		bob ${mode} --platform ${platform} ${additional_params}
 
 		rm -rf "${version_folder}/${filename}_macos.app"
 		mv "${line}" "${version_folder}/${filename}_macos.app" && is_build_success=true
@@ -319,9 +349,12 @@ build() {
 	if [ ${platform} == ${windows_platform} ]; then
 		line="${dist_folder}/${title}"
 
+		if $is_build_html_report; then
+			additional_params=" -brhtml ${version_folder}/${filename}_windows_report.html $additional_params"
+		fi
+
 		echo "Start build Windows ${mode}"
-		bob ${mode} -brhtml ${version_folder}/${filename}_windows_report.html \
-			--platform ${platform} ${additional_params}
+		bob ${mode} --platform ${platform} ${additional_params}
 
 		rm -rf "${version_folder}/${filename}_windows"
 		mv "${line}" "${version_folder}/${filename}_windows" && is_build_success=true
@@ -526,17 +559,24 @@ do
 done
 
 
-### Create additional info to settings
+### Create deployer additional info project settings
 echo "[project]
 version = ${version}
 commit_sha = ${commit_sha}
 build_time = ${build_time}" > ${version_settings_filename}
+
+if $enable_incremental_android_version_code; then
+	echo "
+
+[android]
+version_code = ${commits_count}" >> ${version_settings_filename}
+fi
+
 settings_params="${settings_params} --settings ${version_settings_filename}"
 
 
 ### Deployer run
-if $is_ios
-then
+if $is_ios; then
 	if $is_build; then
 		echo -e "\nStart build on \x1B[36m${ios_platform}\x1B[0m"
 		build ${ios_platform} ${mode}
@@ -549,8 +589,7 @@ then
 	fi
 fi
 
-if $is_android
-then
+if $is_android; then
 	if ! $is_android_instant; then
 		# Just build usual Android build
 		if $is_build; then
@@ -575,8 +614,7 @@ then
 	fi
 fi
 
-if $is_html
-then
+if $is_html; then
 	if $is_build; then
 		echo -e "\nStart build on \x1B[33m${html_platform}\x1B[0m"
 		build ${html_platform} ${mode}
@@ -587,8 +625,7 @@ then
 	fi
 fi
 
-if $is_linux
-then
+if $is_linux; then
 	if $is_build; then
 		echo -e "\nStart build on \x1B[33m${linux_platform}\x1B[0m"
 		build ${linux_platform} ${mode}
@@ -599,8 +636,7 @@ then
 	fi
 fi
 
-if $is_macos
-then
+if $is_macos; then
 	if $is_build; then
 		echo -e "\nStart build on \x1B[33m${macos_platform}\x1B[0m"
 		build ${macos_platform} ${mode}
@@ -611,8 +647,7 @@ then
 	fi
 fi
 
-if $is_windows
-then
+if $is_windows; then
 	if $is_build; then
 		echo -e "\nStart build on \x1B[33m${windows_platform}\x1B[0m"
 		build ${windows_platform} ${mode}
