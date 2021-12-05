@@ -258,6 +258,10 @@ build() {
 		resolve_bob
 	fi
 
+	if [ ! -z "$exclude_folders" ]; then
+		additional_params=" --exclude-build-folder $exclude_folders $additional_params"
+	fi
+
 	filename="${file_prefix_name}_${mode}"
 
 	# Android platform

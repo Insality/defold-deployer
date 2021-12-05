@@ -49,6 +49,9 @@ pre_build_script=false
 # Post-build hook bash script path. The path relative from game project folder
 post_build_script=false
 
+# Exclude folders from build
+exclude_folders=""
+
 # Set patch (last value after dot) game version value as total git commits count (1.2.0 -> 1.2.{commits_count})
 # You allow to get SHA commit from version via: git rev-list --all --reverse | sed -n {N}p
 enable_incremental_version=false
