@@ -323,7 +323,11 @@ build() {
 		rm -rf "${version_folder}/${filename}_html"
 		rm -f "${version_folder}/${filename}_html.zip"
 		mv "${line}" "${version_folder}/${filename}_html"
-		zip "${version_folder}/${filename}_html.zip" -r "${version_folder}/${filename}_html" && is_build_success=true
+
+		previous_folder=${pwd}
+		cd "${version_folder}"
+		zip "${filename}_html.zip" -r "${filename}_html" && is_build_success=true
+		cd "${previous_folder}"
 	fi
 
 	# Linux platform
