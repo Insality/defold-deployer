@@ -59,6 +59,9 @@ enable_incremental_version=false
 # Use git commits count as android.version_code on build
 enable_incremental_android_version_code=false
 
+# Local resource cache folder for deployer script. This folder will be added to gitignore if exists
+resource_cache_local="./.deployer_cache"
+
 # If true, add `-l yes` build param for publish live content
 is_live_content=false
 
@@ -67,6 +70,9 @@ no_strip_executable=false
 
 # Is need to build html report
 is_build_html_report=false
+
+# Enable to start record build stats of every deployer build in csv format
+build_stats_report_file="./deployer_build_stats.csv"
 
 # Android instant app settings.ini path to override
 # (Usually, you need it to override AndroidManifest.xml)
