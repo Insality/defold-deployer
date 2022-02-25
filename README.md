@@ -4,7 +4,7 @@
 
 # Defold Deployer
 Universal build && deploy script for *Defold* projects (Android, iOS, HTML5, Linux, MacOS, Windows)
-**Deployer** is configurable via settings_deployer file. It's allow use single deployer script for different projects
+**Deployer** is configurable via deployer_settings file. It's allow use single deployer script for different projects
 
 ## Features
 - Single deployment script on all Defold projects (Android, iOS, HTML5, Linux, MacOS, Windows)
@@ -15,12 +15,14 @@ Universal build && deploy script for *Defold* projects (Android, iOS, HTML5, Lin
 - Nice naming builds to save history of product versions
 - Auto *bob.jar* downloading. Flag **use_latest_bob** for using always last version of *Defold*
 - Select Bob channel (stable/beta/alpha) and Defold build server via settings file
-- Use incremental value for last number in version and android.version_code (enable via _enable incremental version_, _enable_incremental_android_version_code_)
 - Headless build && run for your unit-tests on CI _[here example](https://github.com/Insality/druid/blob/develop/.github/workflows/ci-workflow.yml#L20)_
 - Add additional info to *game.project*: *project.commit_sha* and *project.build time*
-- Can use pre and post build hooks
 - Android Instant build in one command (`deployer abr --instant`)
 - Redownload dependencies, if they are corrupted
+- [Optional] Build stats history with build size, build time and other info
+- [Optional] Local build cache and separate build folder to prevent cache reset
+- [Optional] Use incremental value for last number in version and android.version_code (enable via _enable incremental version_, _enable_incremental_android_version_code_)
+- [Optional] Pre and post build hooks
 
 ## Install
 For bob build tool you need to install java JDK: https://openjdk.java.net/projects/jdk/11/
@@ -46,10 +48,10 @@ For building Android Instant you need to make prepare:
 ## Setup
 Run `deployer.sh` inside your `game.project` folder.
 
-To create your settings file, just copy `setting_deployer.template` with name `settings_deployer` and place it in right place:
+To create your settings file, just copy `setting_deployer.template` with name `deployer_settings` and place it in right place:
 
-- **Global settings** - `settings_deployer` file nearby `deployer.sh` script
-- **Custom project settings** - `settings_deployer` file nearby `game.project` file
+- **Global settings** - `deployer_settings` file nearby `deployer.sh` script
+- **Custom project settings** - `deployer_settings` file nearby `game.project` file
 
 Custom projects settings will override your global settings
 
@@ -114,10 +116,10 @@ deployer.sh wbr
 ```
 
 ## Deployer parameters
-- **Global settings** setup by `settings_deployer` file nearby with deployer script
-- **Custom project settings** setup by `settings_deployer` file nearby your `game.project` file on root of your project:
+- **Global settings** setup by `deployer_settings` file nearby with deployer script
+- **Custom project settings** setup by `deployer_settings` file nearby your `game.project` file on root of your project:
 
-Copy `settings_deployer.template` with name `settings_deployer` and change it for your needs
+Copy `deployer_settings.template` with name `deployer_settings` and change it for your needs
 
 Deployer parameters:
 ```bash
@@ -179,6 +181,9 @@ enable_incremental_version=false
 # Use git commits count as android.version_code on build
 enable_incremental_android_version_code=false
 
+# Local resource cache folder for deployer script. This folder will be added to gitignore if exists
+resource_cache_local="./.cache_deployer"
+
 # If true, add `-l yes` build param for publish live content
 is_live_content=false
 
@@ -187,6 +192,9 @@ no_strip_executable=false
 
 # Is need to build html report
 is_build_html_report=false
+
+# Enable to start record build stats of every deployer build in csv format
+build_stats_report_file="./deployer_build_stats.csv"
 
 # Android instant app settings.ini path to override
 # (Usually, you need it to override AndroidManifest.xml)
