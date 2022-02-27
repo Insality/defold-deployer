@@ -3,8 +3,8 @@
 ## (c) Insality Games
 ##
 ## Universal build && deploy script for Defold projects (Android, iOS, HTML5, Linux, MacOS, Windows)
-## Deployer has own settings, described in separate file deployer_settings
-## See full deployer settings here: https://github.com/Insality/defold-deployer/blob/master/deployer_settings.template
+## Deployer has own settings, described in separate file settings_deployer
+## See full deployer settings here: https://github.com/Insality/defold-deployer/blob/master/settings_deployer.template
 ##
 ## Install:
 ## See full instructions here: https://github.com/Insality/defold-deployer/blob/master/README.md
@@ -64,7 +64,7 @@ enable_incremental_version=false
 enable_incremental_android_version_code=false
 
 ### Settings loading
-settings_filename="deployer_settings"
+settings_filename="settings_deployer"
 script_path="`dirname \"$0\"`"
 is_settings_exist=false
 

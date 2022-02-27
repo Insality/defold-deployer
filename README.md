@@ -4,7 +4,7 @@
 
 # Defold Deployer
 Universal build && deploy script for *Defold* projects (Android, iOS, HTML5, Linux, MacOS, Windows)
-**Deployer** is configurable via deployer_settings file. It's allow use single deployer script for different projects
+**Deployer** is configurable via settings_deployer file. It's allow use single deployer script for different projects
 
 ## Features
 - Single deployment script on all Defold projects (Android, iOS, HTML5, Linux, MacOS, Windows)
@@ -48,10 +48,10 @@ For building Android Instant you need to make prepare:
 ## Setup
 Run `deployer.sh` inside your `game.project` folder.
 
-To create your settings file, just copy `setting_deployer.template` with name `deployer_settings` and place it in right place:
+To create your settings file, just copy `setting_deployer.template` with name `settings_deployer` and place it in right place:
 
-- **Global settings** - `deployer_settings` file nearby `deployer.sh` script
-- **Custom project settings** - `deployer_settings` file nearby `game.project` file
+- **Global settings** - `settings_deployer` file nearby `deployer.sh` script
+- **Custom project settings** - `settings_deployer` file nearby `game.project` file
 
 Custom projects settings will override your global settings
 
@@ -116,10 +116,10 @@ deployer.sh wbr
 ```
 
 ## Deployer parameters
-- **Global settings** setup by `deployer_settings` file nearby with deployer script
-- **Custom project settings** setup by `deployer_settings` file nearby your `game.project` file on root of your project:
+- **Global settings** setup by `settings_deployer` file nearby with deployer script
+- **Custom project settings** setup by `settings_deployer` file nearby your `game.project` file on root of your project:
 
-Copy `deployer_settings.template` with name `deployer_settings` and change it for your needs
+Copy `settings_deployer.template` with name `settings_deployer` and change it for your needs
 
 Deployer parameters:
 ```bash
