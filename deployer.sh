@@ -3,8 +3,8 @@
 ## (c) Insality Games
 ##
 ## Universal build && deploy script for Defold projects (Android, iOS, HTML5, Linux, MacOS, Windows)
-## Deployer has own settings, described in separate file settings_deployer
-## See full deployer settings here: https://github.com/Insality/defold-deployer/blob/master/settings_deployer.template
+## Deployer has own settings, described in separate file deployer_settings
+## See full deployer settings here: https://github.com/Insality/defold-deployer/blob/master/deployer_settings.template
 ##
 ## Install:
 ## See full instructions here: https://github.com/Insality/defold-deployer/blob/master/README.md
@@ -64,7 +64,7 @@ enable_incremental_version=false
 enable_incremental_android_version_code=false
 
 ### Settings loading
-settings_filename="settings_deployer"
+settings_filename="deployer_settings"
 script_path="`dirname \"$0\"`"
 is_settings_exist=false
 
@@ -91,7 +91,7 @@ fi
 
 
 ### Constants
-build_time=`date -u +"%Y-%m-%dT%H:%M:%SZ"`
+build_date=`date -u +"%Y-%m-%dT%H:%M:%SZ"`
 android_platform="armv7-android"
 ios_platform="armv7-darwin"
 html_platform="js-web"
@@ -99,20 +99,25 @@ linux_platform="x86_64-linux"
 windows_platform="x86_64-win32"
 macos_platform="x86_64-darwin"
 version_settings_filename="deployer_version_settings.txt"
+build_output_folder="./build/default_deployer"
 dist_folder="./dist"
 bundle_folder="${dist_folder}/bundle"
 commit_sha="unknown"
 commits_count=0
+is_git=false
+is_cache_using=false
 
 if [ -d .git ]; then
 	commit_sha=`git rev-parse --verify HEAD`
 	commits_count=`git rev-list --all --count`
+	is_git=true
 fi
 
 
 ### Runtime
 is_build_success=false
 is_build_started=false
+build_time=false
 
 ### Game project settings for deployer script
 title=$(less game.project | grep "^title = " | cut -d "=" -f2 | sed -e 's/^[[:space:]]*//')
@@ -175,6 +180,43 @@ try_fix_libraries() {
 }
 
 
+add_to_gitignore() {
+	if [ ! $is_git ]; then
+		return 0
+	fi
+
+	if [ ! -f ./.gitignore ]; then
+		touch .gitignore
+		echo -e "\Create .gitignore file"
+	fi
+
+	if ! grep -Fxq "$1" .gitignore; then
+		echo "Add $1 to .gitignore"
+		echo "$1" >> .gitignore
+	fi
+}
+
+
+write_report() {
+	if [ -z "$build_stats_report_file" ]; then
+		return 0
+	fi
+
+	if [ ! -f $build_stats_report_file ]; then
+		touch $build_stats_report_file
+		echo -e "Create build report file: $build_stats_report_file"
+
+		echo "date,sha,version,build_size,build_time,platform,mode,is_cache_using,commits_count" >> $build_stats_report_file
+	fi
+
+	platform=$1
+	mode=$2
+	target_path=$3
+	build_size=$(du -sh -k ${target_path} | cut -f1)
+	echo "$build_date,$commit_sha,$version,$build_size,$build_time,$platform,$mode,$is_cache_using,$commits_count" >> $build_stats_report_file
+}
+
+
 resolve_bob() {
 	echo "Resolving libraries..."
 	java -jar ${bob_path} --email foo@bar.com --auth 12345 resolve || try_fix_libraries
@@ -187,7 +229,7 @@ bob() {
 	java --version
 	java -jar ${bob_path} --version
 
-	args="-jar ${bob_path} --archive -bo ${dist_folder} --variant $@"
+	args="-jar ${bob_path} --archive --output ${build_output_folder} --bundle-output ${dist_folder} --variant $@"
 
 	if ! $no_strip_executable; then
 		args+=" --strip-executable"
@@ -208,10 +250,13 @@ bob() {
 		args+=" build bundle distclean"
 	fi
 
+	start_build_time=`date +%s`
+
 	echo -e "Build command: java ${args}"
 	java ${args}
 
-	echo ""
+	build_time=$((`date +%s`-start_build_time))
+	echo -e "Build time: $build_time seconds\n"
 }
 
 
@@ -262,7 +307,15 @@ build() {
 		additional_params=" --exclude-build-folder $exclude_folders $additional_params"
 	fi
 
+	if [ ! -z "$resource_cache_local" ]; then
+		echo "Use resource local cache for bob builder: $resource_cache_local"
+		additional_params=" --resource-cache-local $resource_cache_local $additional_params"
+		is_cache_using=true
+		add_to_gitignore $resource_cache_local
+	fi
+
 	filename="${file_prefix_name}_${mode}"
+	target_path=false
 
 	# Android platform
 	if [ ${platform} == ${android_platform} ]; then
@@ -290,7 +343,9 @@ build() {
 			--keystore-pass ${android_keystore_password} \
 			--build-server ${build_server} ${additional_params}
 
-		mv "${line}.apk" "${version_folder}/${filename}.apk" && is_build_success=true
+		target_path="${version_folder}/${filename}.apk"
+
+		mv "${line}.apk" ${target_path} && is_build_success=true
 	fi
 
 	# iOS platform
@@ -304,9 +359,11 @@ build() {
 		bob ${mode} --platform ${platform} --identity ${ident} -mp ${prov} \
 			--build-server ${build_server} ${additional_params}
 
+		target_path="${version_folder}/${filename}.ipa"
+
 		rm -rf "${version_folder}/${filename}.app"
 		mv "${line}.app" "${version_folder}/${filename}.app"
-		mv "${line}.ipa" "${version_folder}/${filename}.ipa" && is_build_success=true
+		mv "${line}.ipa" ${target_path} && is_build_success=true
 	fi
 
 	# HTML5 platform
@@ -320,8 +377,10 @@ build() {
 		echo "Start build HTML5 ${mode}"
 		bob ${mode} --platform ${platform} ${additional_params}
 
+		target_path="${version_folder}/${filename}_html.zip"
+
 		rm -rf "${version_folder}/${filename}_html"
-		rm -f "${version_folder}/${filename}_html.zip"
+		rm -f "${target_path}"
 		mv "${line}" "${version_folder}/${filename}_html"
 
 		previous_folder=`pwd`
@@ -341,8 +400,10 @@ build() {
 		echo "Start build Linux ${mode}"
 		bob ${mode} --platform ${platform} ${additional_params}
 
-		rm -rf "${version_folder}/${filename}_linux"
-		mv "${line}" "${version_folder}/${filename}_linux" && is_build_success=true
+		target_path="${version_folder}/${filename}_linux"
+
+		rm -rf ${target_path}
+		mv "${line}" ${target_path} && is_build_success=true
 	fi
 
 	# MacOS platform
@@ -356,8 +417,10 @@ build() {
 		echo "Start build MacOS ${mode}"
 		bob ${mode} --platform ${platform} ${additional_params}
 
-		rm -rf "${version_folder}/${filename}_macos.app"
-		mv "${line}" "${version_folder}/${filename}_macos.app" && is_build_success=true
+		target_path="${version_folder}/${filename}_macos.app"
+
+		rm -rf ${target_path}
+		mv "${line}" ${target_path} && is_build_success=true
 	fi
 
 	# Windows platform
@@ -371,8 +434,10 @@ build() {
 		echo "Start build Windows ${mode}"
 		bob ${mode} --platform ${platform} ${additional_params}
 
-		rm -rf "${version_folder}/${filename}_windows"
-		mv "${line}" "${version_folder}/${filename}_windows" && is_build_success=true
+		target_path="${version_folder}/${filename}_windows"
+
+		rm -rf ${target_path}
+		mv "${line}" ${target_path} && is_build_success=true
 	fi
 
 	if $is_build_success; then
@@ -381,6 +446,8 @@ build() {
 			echo "Run post-build script: $post_build_script"
 			source ./$post_build_script
 		fi
+
+		write_report ${platform} ${mode} ${target_path}
 	else
 		echo -e "\x1B[31mError during building...\x1B[0m"
 	fi
@@ -508,7 +575,7 @@ build_server=${build_server:-"https://build.defold.com"}
 
 for (( i=0; i<${#arg}; i++ )); do
 	a=${arg:$i:1}
-	if [ $a == b ]; then
+	if [ $a == "b" ]; then
 		is_build=true
 	fi
 	if [ $a == "d" ]; then
@@ -582,7 +649,7 @@ done
 echo "[project]
 version = ${version}
 commit_sha = ${commit_sha}
-build_time = ${build_time}" > ${version_settings_filename}
+build_date = ${build_date}" > ${version_settings_filename}
 
 if $enable_incremental_android_version_code; then
 	echo "
@@ -592,6 +659,7 @@ version_code = ${commits_count}" >> ${version_settings_filename}
 fi
 
 settings_params="${settings_params} --settings ${version_settings_filename}"
+add_to_gitignore $version_settings_filename
 
 
 ### Deployer run
