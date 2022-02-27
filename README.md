@@ -182,7 +182,7 @@ enable_incremental_version=false
 enable_incremental_android_version_code=false
 
 # Local resource cache folder for deployer script. This folder will be added to gitignore if exists
-resource_cache_local="./.cache_deployer"
+resource_cache_local=".cache_deployer"
 
 # If true, add `-l yes` build param for publish live content
 is_live_content=false
