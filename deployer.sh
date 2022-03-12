@@ -491,8 +491,8 @@ deploy() {
 		echo "Start python server and open in browser ${filename:1}"
 
 		open "http://localhost:8000${filename:1}"
-		python --version
-		python -m "SimpleHTTPServer"
+		python3 --version
+		python3 -m "http.server"
 	fi
 }
 
