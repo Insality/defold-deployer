@@ -90,3 +90,21 @@ android_key_dist={path_to_key.pk8}
 
 # Path to android signature certificate for release (Since Defold 174 only using for Android Instant games)
 android_cer_dist={path_to_certificate.pem}
+
+# Use settings file for Android platform
+# settings_android={path_to_android_ini}
+
+# Use settings file for iOS platform
+# settings_ios={path_to_ios_ini}
+
+# Use settings file for HTML platform
+# settings_html={path_to_html_ini}
+
+# Use settings file for MacOS platform
+# settings_macos={path_to_macos_ini}
+
+# Use settings file for Windows platform
+# settings_windows={path_to_windows_ini}
+
+# Use settings file for Linux platform
+# settings_linux={path_to_linux_ini}

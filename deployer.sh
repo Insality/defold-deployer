@@ -340,6 +340,10 @@ build() {
 			additional_params=" -brhtml ${version_folder}/${filename}_android_report.html $additional_params"
 		fi
 
+		if [ ! -z "$settings_android" ]; then
+			additional_params="$additional_params --settings $settings_android"
+		fi
+
 		bob ${mode} --platform ${platform} --bundle-format ${android_bundle_format} --keystore ${android_keystore} \
 			--keystore-pass ${android_keystore_password} \
 			--build-server ${build_server} ${additional_params}
@@ -355,6 +359,10 @@ build() {
 
 		if $is_build_html_report; then
 			additional_params=" -brhtml ${version_folder}/${filename}_ios_report.html $additional_params"
+		fi
+
+		if [ ! -z "$settings_ios" ]; then
+			additional_params="$additional_params --settings $settings_ios"
 		fi
 
 		bob ${mode} --platform ${platform} --identity ${ident} -mp ${prov} \
@@ -373,6 +381,10 @@ build() {
 
 		if $is_build_html_report; then
 			additional_params=" -brhtml ${version_folder}/${filename}_html_report.html $additional_params"
+		fi
+
+		if [ ! -z "$settings_html" ]; then
+			additional_params="$additional_params --settings $settings_html"
 		fi
 
 		echo "Start build HTML5 ${mode}"
@@ -398,6 +410,10 @@ build() {
 			additional_params=" -brhtml ${version_folder}/${filename}_linux_report.html $additional_params"
 		fi
 
+		if [ ! -z "$settings_linux" ]; then
+			additional_params="$additional_params --settings $settings_linux"
+		fi
+
 		echo "Start build Linux ${mode}"
 		bob ${mode} --platform ${platform} ${additional_params}
 
@@ -415,6 +431,10 @@ build() {
 			additional_params=" -brhtml ${version_folder}/${filename}_macos_report.html $additional_params"
 		fi
 
+		if [ ! -z "$settings_macos" ]; then
+			additional_params="$additional_params --settings $settings_macos"
+		fi
+
 		echo "Start build MacOS ${mode}"
 		bob ${mode} --platform ${platform} ${additional_params}
 
@@ -430,6 +450,10 @@ build() {
 
 		if $is_build_html_report; then
 			additional_params=" -brhtml ${version_folder}/${filename}_windows_report.html $additional_params"
+		fi
+
+		if [ ! -z "$settings_windows" ]; then
+			additional_params="$additional_params --settings $settings_windows"
 		fi
 
 		echo "Start build Windows ${mode}"
