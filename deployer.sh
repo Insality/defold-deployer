@@ -99,6 +99,7 @@ linux_platform="x86_64-linux"
 windows_platform="x86_64-win32"
 macos_platform="x86_64-darwin"
 version_settings_filename="deployer_version_settings.txt"
+android_bundle_format="${android_bundle_format:-"aab"}"
 build_output_folder="./build/default_deployer"
 dist_folder="./dist"
 bundle_folder="${dist_folder}/bundle"
@@ -339,13 +340,13 @@ build() {
 			additional_params=" -brhtml ${version_folder}/${filename}_android_report.html $additional_params"
 		fi
 
-		bob ${mode} --platform ${platform} --keystore ${android_keystore} \
+		bob ${mode} --platform ${platform} --bundle-format ${android_bundle_format} --keystore ${android_keystore} \
 			--keystore-pass ${android_keystore_password} \
 			--build-server ${build_server} ${additional_params}
 
-		target_path="${version_folder}/${filename}.apk"
+		target_path="${version_folder}/${filename}.${android_bundle_format}"
 
-		mv "${line}.apk" ${target_path} && is_build_success=true
+		mv "${line}.${android_bundle_format}" ${target_path} && is_build_success=true
 	fi
 
 	# iOS platform
