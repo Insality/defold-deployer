@@ -93,13 +93,13 @@ fi
 ### Constants
 build_date=`date -u +"%Y-%m-%dT%H:%M:%SZ"`
 android_platform="armv7-android"
-ios_platform="armv7-darwin"
+ios_platform="arm64-darwin"
 html_platform="js-web"
 linux_platform="x86_64-linux"
 windows_platform="x86_64-win32"
 macos_platform="x86_64-darwin"
 version_settings_filename="deployer_version_settings.txt"
-android_bundle_format="${android_bundle_format:-"aab"}"
+android_bundle_format="${android_bundle_format:-"apk"}"
 build_output_folder="./build/default_deployer"
 dist_folder="./dist"
 bundle_folder="${dist_folder}/bundle"
@@ -365,7 +365,7 @@ build() {
 			additional_params="$additional_params --settings $settings_ios"
 		fi
 
-		bob ${mode} --platform ${platform} --identity ${ident} -mp ${prov} \
+		bob ${mode} --platform ${platform} --architectures arm64-darwin --identity ${ident} -mp ${prov} \
 			--build-server ${build_server} ${additional_params}
 
 		target_path="${version_folder}/${filename}.ipa"

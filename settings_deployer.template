@@ -19,9 +19,6 @@ android_keystore_alias_dev="keystore_alias"
 # Name of alias from provided keystore to use for android release build
 android_keystore_alias_dist="keystore_alias"
 
-# Format of the created bundle. Values: "apk" or "aab"
-android_bundle_format="aab"
-
 # ID of your ios development identity
 ios_identity_dev="AAXBBYY"
 
