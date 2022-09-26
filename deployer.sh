@@ -193,7 +193,7 @@ add_to_gitignore() {
 
 	if ! grep -Fxq "$1" .gitignore; then
 		echo "Add $1 to .gitignore"
-		echo "$1" >> .gitignore
+		echo -e "\n$1" >> .gitignore
 	fi
 }
 
@@ -243,7 +243,7 @@ bob() {
 
 	if [ ${mode} == "release" ]; then
 		echo -e "\nBuild with distclean and compression. Release mode"
-		args+=" -tc true build bundle distclean"
+		args+=" --texture-compression true build bundle distclean"
 	fi
 
 	if [ ${mode} == "headless" ]; then
@@ -365,7 +365,7 @@ build() {
 			additional_params="$additional_params --settings $settings_ios"
 		fi
 
-		bob ${mode} --platform ${platform} --architectures arm64-darwin --identity ${ident} -mp ${prov} \
+		bob ${mode} --platform ${platform} --architectures arm64-darwin --identity ${ident} --mobileprovisioning ${prov} \
 			--build-server ${build_server} ${additional_params}
 
 		target_path="${version_folder}/${filename}.ipa"
@@ -508,7 +508,8 @@ deploy() {
 	if [ ${platform} == ${ios_platform} ]; then
 		filename="${version_folder}/${file_prefix_name}_${mode}.ipa"
 		echo "Deploy to iOS from ${filename}"
-		ios-deploy --bundle "${filename}"
+		echo "Deploy command: ios-deploy --bundle ${filename} --bundle_id ${bundle_id}"
+		ios-deploy --bundle "${filename}" --bundle_id "${bundle_id}"
 	fi
 
 	if [ ${platform} == ${html_platform} ]; then
