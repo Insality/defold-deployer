@@ -93,13 +93,12 @@ fi
 ### Constants
 build_date=`date -u +"%Y-%m-%dT%H:%M:%SZ"`
 android_platform="armv7-android"
-ios_platform="arm64-darwin"
+ios_platform="arm64-ios"
 html_platform="js-web"
 linux_platform="x86_64-linux"
 windows_platform="x86_64-win32"
-macos_platform="x86_64-darwin"
+macos_platform="x86_64-macos"
 version_settings_filename="deployer_version_settings.txt"
-android_bundle_format="${android_bundle_format:-"apk"}"
 build_output_folder="./build/default_deployer"
 dist_folder="./dist"
 bundle_folder="${dist_folder}/bundle"
@@ -344,13 +343,15 @@ build() {
 			additional_params="$additional_params --settings $settings_android"
 		fi
 
-		bob ${mode} --platform ${platform} --bundle-format ${android_bundle_format} --keystore ${android_keystore} \
+		bob ${mode} --platform ${platform} --bundle-format apk,aab --keystore ${android_keystore} \
 			--keystore-pass ${android_keystore_password} \
 			--build-server ${build_server} ${additional_params}
 
-		target_path="${version_folder}/${filename}.${android_bundle_format}"
+		target_path="${version_folder}/${filename}.apk"
+		mv "${line}.apk" ${target_path} && is_build_success=true
 
-		mv "${line}.${android_bundle_format}" ${target_path} && is_build_success=true
+		target_path="${version_folder}/${filename}.aab"
+		mv "${line}.aab" ${target_path} && is_build_success=true
 	fi
 
 	# iOS platform
@@ -365,7 +366,7 @@ build() {
 			additional_params="$additional_params --settings $settings_ios"
 		fi
 
-		bob ${mode} --platform ${platform} --architectures arm64-darwin --identity ${ident} --mobileprovisioning ${prov} \
+		bob ${mode} --platform ${platform} --architectures arm64-ios --identity ${ident} --mobileprovisioning ${prov} \
 			--build-server ${build_server} ${additional_params}
 
 		target_path="${version_folder}/${filename}.ipa"
@@ -388,7 +389,7 @@ build() {
 		fi
 
 		echo "Start build HTML5 ${mode}"
-		bob ${mode} --platform ${platform} ${additional_params}
+		bob ${mode} --platform ${platform} --architectures js-web ${additional_params}
 
 		target_path="${version_folder}/${filename}_html.zip"
 
