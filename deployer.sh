@@ -53,6 +53,9 @@ if [ ! -f ./game.project ]; then
 	exit
 fi
 
+### Export values
+# DEPLOYER_ARTIFACT_PATH - path to build artifact (for example, .app file)
+
 ### Default variables
 use_latest_bob=false
 is_live_content=false
@@ -350,6 +353,8 @@ build() {
 		target_path="${version_folder}/${filename}.apk"
 		mv "${line}.apk" ${target_path} && is_build_success=true
 
+		export DEPLOYER_ARTIFACT_PATH="${target_path}"
+
 		target_path="${version_folder}/${filename}.aab"
 		mv "${line}.aab" ${target_path} && is_build_success=true
 	fi
@@ -374,6 +379,8 @@ build() {
 		rm -rf "${version_folder}/${filename}.app"
 		mv "${line}.app" "${version_folder}/${filename}.app"
 		mv "${line}.ipa" ${target_path} && is_build_success=true
+
+		export DEPLOYER_ARTIFACT_PATH="${target_path}"
 	fi
 
 	# HTML5 platform
@@ -401,6 +408,8 @@ build() {
 		cd "${version_folder}"
 		zip "${filename}_html.zip" -r "${filename}_html" && is_build_success=true
 		cd "${previous_folder}"
+
+		export DEPLOYER_ARTIFACT_PATH="${target_path}"
 	fi
 
 	# Linux platform
@@ -422,6 +431,8 @@ build() {
 
 		rm -rf ${target_path}
 		mv "${line}" ${target_path} && is_build_success=true
+
+		export DEPLOYER_ARTIFACT_PATH="${target_path}"
 	fi
 
 	# MacOS platform
@@ -443,6 +454,8 @@ build() {
 
 		rm -rf ${target_path}
 		mv "${line}" ${target_path} && is_build_success=true
+
+		export DEPLOYER_ARTIFACT_PATH="${target_path}"
 	fi
 
 	# Windows platform
@@ -464,6 +477,8 @@ build() {
 
 		rm -rf ${target_path}
 		mv "${line}" ${target_path} && is_build_success=true
+
+		export DEPLOYER_ARTIFACT_PATH="${target_path}"
 	fi
 
 	if $is_build_success; then
@@ -573,6 +588,8 @@ clean() {
 	if $is_build_started; then
 		if $is_build_success; then
 			echo -e "\x1B[32m[SUCCESS]: Build succesfully created\x1B[0m"
+			echo -e "\x1B[32m[SUCCESS]: Build time: ${build_time} seconds\x1B[0m"
+			echo -e "\x1B[32m[SUCCESS]: Build artifact: ${DEPLOYER_ARTIFACT_PATH}\x1B[0m"
 		else
 			echo -e "\x1B[31m[ERROR]: Build finished with errors\x1B[0m"
 		fi
