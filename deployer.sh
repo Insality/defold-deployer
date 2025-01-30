@@ -178,6 +178,7 @@ fi
 try_fix_libraries() {
 	echo "Possibly, libs was corrupted (script interrupted while resolving libraries)"
 	echo "Trying to delete and redownload it (./.internal/lib/)"
+	# TODO: move to bin instead of hard remove, should be revertable
 	rm -r ./.internal/lib/
 	java -jar ${bob_path} --email foo@bar.com --auth 12345 resolve
 }
@@ -196,6 +197,23 @@ add_to_gitignore() {
 	if ! grep -Fxq "$1" .gitignore; then
 		echo "Add $1 to .gitignore"
 		echo -e "\n$1" >> .gitignore
+	fi
+}
+
+
+add_to_defignore() {
+	if [ ! $is_git ]; then
+		return 0
+	fi
+
+	if [ ! -f ./.defignore ]; then
+		touch .defignore
+		echo -e "\Create .defignore file"
+	fi
+
+	if ! grep -Fxq "$1" .defignore; then
+		echo "Add $1 to .defignore"
+		echo -e "\n$1" >> .defignore
 	fi
 }
 
@@ -314,7 +332,8 @@ build() {
 		echo "Use resource local cache for bob builder: $resource_cache_local"
 		additional_params=" --resource-cache-local $resource_cache_local $additional_params"
 		is_cache_using=true
-		add_to_gitignore $resource_cache_local
+		add_to_gitignore /$resource_cache_local
+		add_to_defignore /$resource_cache_local
 	fi
 
 	filename="${file_prefix_name}_${mode}"
@@ -396,7 +415,7 @@ build() {
 		fi
 
 		echo "Start build HTML5 ${mode}"
-		bob ${mode} --platform ${platform} --architectures js-web ${additional_params}
+		bob ${mode} --platform ${platform} --architectures wasm-web ${additional_params}
 
 		target_path="${version_folder}/${filename}_html.zip"
 
@@ -692,8 +711,7 @@ done
 ### Create deployer additional info project settings
 echo "[project]
 version = ${version}
-commit_sha = ${commit_sha}
-build_date = ${build_date}" > ${version_settings_filename}
+commit_sha = ${commit_sha}" > ${version_settings_filename}
 
 if $enable_incremental_android_version_code; then
 	echo "
