@@ -49,9 +49,6 @@ pre_build_script=false
 # Post-build hook bash script path. The path relative from game project folder
 post_build_script=false
 
-# Exclude folders from build
-exclude_folders=""
-
 # Set patch (last value after dot) game version value as total git commits count (1.2.0 -> 1.2.{commits_count})
 # You allow to get SHA commit from version via: git rev-list --all --reverse | sed -n {N}p
 enable_incremental_version=false
@@ -73,11 +70,6 @@ is_build_html_report=false
 
 # Enable to start record build stats of every deployer build in csv format
 build_stats_report_file="./deployer_build_stats.csv"
-
-# Android instant app settings.ini path to override
-# (Usually, you need it to override AndroidManifest.xml)
-# See instruction here: https://forum.defold.com/t/instruction-android-instant-app-creation/48471
-android_instant_app_settings={path_to_android_settings_ini}
 
 # SDK path to build Android Instant app
 sdk_path={path_to_android_sdk}

@@ -99,9 +99,10 @@ android_platform="armv7-android"
 ios_platform="arm64-ios"
 html_platform="js-web"
 linux_platform="x86_64-linux"
+linux_arm_platform="arm64-linux"
 windows_platform="x86_64-win32"
 macos_platform="x86_64-macos"
-version_settings_filename="deployer_version_settings.txt"
+version_settings_filename="deployer_version_settings.ini"
 build_output_folder="./build/default_deployer"
 dist_folder="./dist"
 bundle_folder="${dist_folder}/bundle"
@@ -174,12 +175,17 @@ if [ ! ${real_bob_sha} == ${bob_sha} ]; then
 	download_bob
 fi
 
+# Print current bob version
+java -jar ${bob_path} --version
+
 
 try_fix_libraries() {
 	echo "Possibly, libs was corrupted (script interrupted while resolving libraries)"
 	echo "Trying to delete and redownload it (./.internal/lib/)"
 	# TODO: move to bin instead of hard remove, should be revertable
-	rm -r ./.internal/lib/
+	if [ -d ./.internal/lib/ ]; then
+		rm -r ./.internal/lib/
+	fi
 	java -jar ${bob_path} --email foo@bar.com --auth 12345 resolve
 }
 
@@ -324,10 +330,6 @@ build() {
 		resolve_bob
 	fi
 
-	if [ ! -z "$exclude_folders" ]; then
-		additional_params=" --exclude-build-folder $exclude_folders $additional_params"
-	fi
-
 	if [ ! -z "$resource_cache_local" ]; then
 		echo "Use resource local cache for bob builder: $resource_cache_local"
 		additional_params=" --resource-cache-local $resource_cache_local $additional_params"
@@ -447,6 +449,29 @@ build() {
 		bob ${mode} --platform ${platform} ${additional_params}
 
 		target_path="${version_folder}/${filename}_linux"
+
+		rm -rf ${target_path}
+		mv "${line}" ${target_path} && is_build_success=true
+
+		export DEPLOYER_ARTIFACT_PATH="${target_path}"
+	fi
+
+	# Linux ARM platform
+	if [ ${platform} == ${linux_arm_platform} ]; then
+		line="${dist_folder}/${title}"
+
+		if $is_build_html_report; then
+			additional_params=" -brhtml ${version_folder}/${filename}_linux_arm_report.html $additional_params"
+		fi
+
+		if [ ! -z "$settings_linux_arm" ]; then
+			additional_params="$additional_params --settings $settings_linux_arm"
+		fi
+
+		echo "Start build Linux ARM ${mode}"
+		bob ${mode} --platform ${platform} ${additional_params}
+
+		target_path="${version_folder}/${filename}_linux_arm"
 
 		rm -rf ${target_path}
 		mv "${line}" ${target_path} && is_build_success=true
@@ -739,27 +764,16 @@ if $is_ios; then
 fi
 
 if $is_android; then
-	if ! $is_android_instant; then
-		# Just build usual Android build
-		if $is_build; then
-			echo -e "\nStart build on \x1B[34m${android_platform}\x1B[0m"
-			build ${android_platform} ${mode}
-		fi
+	# Just build usual Android build
+	if $is_build; then
+		echo -e "\nStart build on \x1B[34m${android_platform}\x1B[0m"
+		build ${android_platform} ${mode}
+	fi
 
-		if $is_deploy; then
-			echo "Start deploy project to device"
-			deploy ${android_platform} ${mode}
-			run ${android_platform} ${mode}
-		fi
-	else
-		# Build Android Instant APK
-		echo -e "\nStart build on \x1B[34m${android_platform} Instant APK\x1B[0m"
-		build ${android_platform} ${mode} "--settings ${android_instant_app_settings}"
-		make_instant ${mode}
-
-		if $is_deploy; then
-			echo "No autodeploy for Instant APK builds..."
-		fi
+	if $is_deploy; then
+		echo "Start deploy project to device"
+		deploy ${android_platform} ${mode}
+		run ${android_platform} ${mode}
 	fi
 fi
 
@@ -778,6 +792,9 @@ if $is_linux; then
 	if $is_build; then
 		echo -e "\nStart build on \x1B[33m${linux_platform}\x1B[0m"
 		build ${linux_platform} ${mode}
+
+		echo -e "\nStart build on \x1B[33m${linux_arm_platform}\x1B[0m"
+		build ${linux_arm_platform} ${mode}
 	fi
 
 	if $is_deploy; then
