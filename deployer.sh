@@ -607,9 +607,14 @@ run() {
 
 	if [ ${platform} == ${macos_platform} ]; then
 		filename="${version_folder}/${file_prefix_name}_${mode}_macos.app"
+		binary_path="${filename}/Contents/MacOS/${title_no_space}"
 
 		echo "Start MacOS build: $filename"
-		open $filename
+		if [ -f "${binary_path}" ]; then
+			./${binary_path}
+		else
+			echo -e "\x1B[31m[ERROR]: Binary not found at ${binary_path}\x1B[0m"
+		fi
 	fi
 
 	if [ ${platform} == ${windows_platform} ]; then
