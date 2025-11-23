@@ -99,9 +99,10 @@ android_platform="armv7-android"
 ios_platform="arm64-ios"
 html_platform="js-web"
 linux_platform="x86_64-linux"
+linux_arm_platform="arm64-linux"
 windows_platform="x86_64-win32"
 macos_platform="x86_64-macos"
-version_settings_filename="deployer_version_settings.txt"
+version_settings_filename="deployer_version_settings.ini"
 build_output_folder="./build/default_deployer"
 dist_folder="./dist"
 bundle_folder="${dist_folder}/bundle"
@@ -174,11 +175,17 @@ if [ ! ${real_bob_sha} == ${bob_sha} ]; then
 	download_bob
 fi
 
+# Print current bob version
+java -jar ${bob_path} --version
+
 
 try_fix_libraries() {
 	echo "Possibly, libs was corrupted (script interrupted while resolving libraries)"
 	echo "Trying to delete and redownload it (./.internal/lib/)"
-	rm -r ./.internal/lib/
+	# TODO: move to bin instead of hard remove, should be revertable
+	if [ -d ./.internal/lib/ ]; then
+		rm -r ./.internal/lib/
+	fi
 	java -jar ${bob_path} --email foo@bar.com --auth 12345 resolve
 }
 
@@ -196,6 +203,23 @@ add_to_gitignore() {
 	if ! grep -Fxq "$1" .gitignore; then
 		echo "Add $1 to .gitignore"
 		echo -e "\n$1" >> .gitignore
+	fi
+}
+
+
+add_to_defignore() {
+	if [ ! $is_git ]; then
+		return 0
+	fi
+
+	if [ ! -f ./.defignore ]; then
+		touch .defignore
+		echo -e "\Create .defignore file"
+	fi
+
+	if ! grep -Fxq "$1" .defignore; then
+		echo "Add $1 to .defignore"
+		echo -e "\n$1" >> .defignore
 	fi
 }
 
@@ -306,15 +330,12 @@ build() {
 		resolve_bob
 	fi
 
-	if [ ! -z "$exclude_folders" ]; then
-		additional_params=" --exclude-build-folder $exclude_folders $additional_params"
-	fi
-
 	if [ ! -z "$resource_cache_local" ]; then
 		echo "Use resource local cache for bob builder: $resource_cache_local"
 		additional_params=" --resource-cache-local $resource_cache_local $additional_params"
 		is_cache_using=true
-		add_to_gitignore $resource_cache_local
+		add_to_gitignore /$resource_cache_local
+		add_to_defignore /$resource_cache_local
 	fi
 
 	filename="${file_prefix_name}_${mode}"
@@ -396,7 +417,7 @@ build() {
 		fi
 
 		echo "Start build HTML5 ${mode}"
-		bob ${mode} --platform ${platform} --architectures js-web ${additional_params}
+		bob ${mode} --platform ${platform} --architectures wasm-web ${additional_params}
 
 		target_path="${version_folder}/${filename}_html.zip"
 
@@ -428,6 +449,29 @@ build() {
 		bob ${mode} --platform ${platform} ${additional_params}
 
 		target_path="${version_folder}/${filename}_linux"
+
+		rm -rf ${target_path}
+		mv "${line}" ${target_path} && is_build_success=true
+
+		export DEPLOYER_ARTIFACT_PATH="${target_path}"
+	fi
+
+	# Linux ARM platform
+	if [ ${platform} == ${linux_arm_platform} ]; then
+		line="${dist_folder}/${title}"
+
+		if $is_build_html_report; then
+			additional_params=" -brhtml ${version_folder}/${filename}_linux_arm_report.html $additional_params"
+		fi
+
+		if [ ! -z "$settings_linux_arm" ]; then
+			additional_params="$additional_params --settings $settings_linux_arm"
+		fi
+
+		echo "Start build Linux ARM ${mode}"
+		bob ${mode} --platform ${platform} ${additional_params}
+
+		target_path="${version_folder}/${filename}_linux_arm"
 
 		rm -rf ${target_path}
 		mv "${line}" ${target_path} && is_build_success=true
@@ -563,9 +607,14 @@ run() {
 
 	if [ ${platform} == ${macos_platform} ]; then
 		filename="${version_folder}/${file_prefix_name}_${mode}_macos.app"
+		binary_path="${filename}/Contents/MacOS/${title_no_space}"
 
 		echo "Start MacOS build: $filename"
-		open $filename
+		if [ -f "${binary_path}" ]; then
+			./${binary_path}
+		else
+			echo -e "\x1B[31m[ERROR]: Binary not found at ${binary_path}\x1B[0m"
+		fi
 	fi
 
 	if [ ${platform} == ${windows_platform} ]; then
@@ -692,8 +741,7 @@ done
 ### Create deployer additional info project settings
 echo "[project]
 version = ${version}
-commit_sha = ${commit_sha}
-build_date = ${build_date}" > ${version_settings_filename}
+commit_sha = ${commit_sha}" > ${version_settings_filename}
 
 if $enable_incremental_android_version_code; then
 	echo "
@@ -721,27 +769,16 @@ if $is_ios; then
 fi
 
 if $is_android; then
-	if ! $is_android_instant; then
-		# Just build usual Android build
-		if $is_build; then
-			echo -e "\nStart build on \x1B[34m${android_platform}\x1B[0m"
-			build ${android_platform} ${mode}
-		fi
+	# Just build usual Android build
+	if $is_build; then
+		echo -e "\nStart build on \x1B[34m${android_platform}\x1B[0m"
+		build ${android_platform} ${mode}
+	fi
 
-		if $is_deploy; then
-			echo "Start deploy project to device"
-			deploy ${android_platform} ${mode}
-			run ${android_platform} ${mode}
-		fi
-	else
-		# Build Android Instant APK
-		echo -e "\nStart build on \x1B[34m${android_platform} Instant APK\x1B[0m"
-		build ${android_platform} ${mode} "--settings ${android_instant_app_settings}"
-		make_instant ${mode}
-
-		if $is_deploy; then
-			echo "No autodeploy for Instant APK builds..."
-		fi
+	if $is_deploy; then
+		echo "Start deploy project to device"
+		deploy ${android_platform} ${mode}
+		run ${android_platform} ${mode}
 	fi
 fi
 
@@ -760,6 +797,9 @@ if $is_linux; then
 	if $is_build; then
 		echo -e "\nStart build on \x1B[33m${linux_platform}\x1B[0m"
 		build ${linux_platform} ${mode}
+
+		echo -e "\nStart build on \x1B[33m${linux_arm_platform}\x1B[0m"
+		build ${linux_arm_platform} ${mode}
 	fi
 
 	if $is_deploy; then
