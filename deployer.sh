@@ -97,7 +97,7 @@ fi
 build_date=`date -u +"%Y-%m-%dT%H:%M:%SZ"`
 android_platform="armv7-android"
 ios_platform="arm64-ios"
-html_platform="js-web"
+html_platform="wasm-web"
 linux_platform="x86_64-linux"
 linux_arm_platform="arm64-linux"
 windows_platform="x86_64-win32"
@@ -417,7 +417,7 @@ build() {
 		fi
 
 		echo "Start build HTML5 ${mode}"
-		bob ${mode} --platform ${platform} --architectures wasm-web ${additional_params}
+		bob ${mode} --platform ${platform} ${additional_params}
 
 		target_path="${version_folder}/${filename}_html.zip"
 
